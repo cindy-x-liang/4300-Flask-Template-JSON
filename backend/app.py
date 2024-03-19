@@ -1,6 +1,6 @@
 import json
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
@@ -290,31 +290,62 @@ def index_search(
     solution.sort(key=lambda x:x[0], reverse = True)
     return solution
 
+#this function takes in an integer and returns a category
+def get_age_category(age):
+   if age > 0 and age < 13:
+      return "Kid"
+   elif age > 12 and age < 19:
+      return "Teenager"
+   elif age > 18 and age < 26:
+      return "Young Adult"
+   elif age > 25 and age < 61:
+      return "Adult"
+   else:
+      return "Old"
+
+#this function converts the database string repr of price into an integer
+def price_to_int(price):
+  try:
+    period_index = price.find(".") #find where the period is
+    number = price[1:period_index] #take just the number
+    return int(number) + 1 #round up
+  except:
+    return 0 #just return small number
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
-def json_search(query):
+def json_search(query,age=None,gender=None,pricing=None):
+    #first filter out products given age, gender, and pricing
+    filtered_data = []
+    for item in data:
+      item_price = item['Selling Price']
+      #print(item_price)
+      if price_to_int(item_price) < pricing:
+         filtered_data.append(item)
+
+    #filtered_data = data
+    #run cosine similariity using query 
     dict_products = {}
     count = 1
-    for i in data:
+    for i in filtered_data:
         dict_products[count] = tokenize(i['About Product'])
         count+=1
 
     dict_products[1]
     inv_indx = build_inverted_index(dict_products)
-    idf = compute_idf(inv_indx, len(data),
+    idf = compute_idf(inv_indx, len(filtered_data),
                   min_df=10,
                   max_df_ratio=0.1) 
 
     inv_idx = {key: val for key, val in inv_indx.items()
             if key in idf} 
-    doc_norms = compute_doc_norms(inv_idx, idf, len(data))
-    query = 'puzzle creative fun'
+    doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
+    #query = 'Star Wars Han Solo'
     results = index_search(query, inv_idx, idf, doc_norms)
 
     doc_id_to_product = {}
     count = 1
-    for i in data:
+    for i in filtered_data:
         doc_id_to_product[count] = i
         count+=1
     
@@ -333,10 +364,32 @@ def json_search(query):
 def home():
     return render_template('base.html',title="sample html")
 
-@app.route("/episodes")
+"""
+Filters:
+-age range
+-gender
+-pricing
+"""
+
+@app.route("/episodes", methods = ['POST'])
 def episodes_search():
-    text = request.args.get("title")
-    return json_search(text)
+    data = request.json
+    text = data["title"] #query -- ex. Star Wars Action Figure
+    #optional filters -- ***if not used then pass in empty string "" ***
+    age = data["age"] #number ex. 17 that we classify into child, teen, YA, adult, old
+    """
+    child: 0-13
+    Teen: 13-18
+    Young Adult: 18-25
+    Adult: 25-60
+    Old: 60+
+    """
+    gender = data["gender"] #either Male or Female
+    pricing = data["pricing"] #limit of how much user wants to spend ex. 100
+
+    # print(text)
+    # print(type(pricing))
+    return json_search(text,pricing=pricing)
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=8000)
