@@ -47,14 +47,14 @@
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
             var description = document.getElementById('filter-text-val').value;
-            var age = document.getElementById('age').value;
+            var age = Number(document.getElementById('age').value);
             var gender = document.getElementById('gender').value;
-            var price = document.getElementById('price').value;
+            var price = Number(document.getElementById('price').value);
             var data = {
-                description: description,
-                age: age,
-                gender: gender,
-                price: price
+                "title": description,
+                "age": age,
+                "gender": gender,
+                "pricing": price
             };
             fetch("/episodes", {
                 method: 'POST',
@@ -72,6 +72,9 @@
                 .then(data => {
                     console.log(data);
                 })
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
         })
 
         function answerBoxTemplate(title, titleDesc, rating) {
