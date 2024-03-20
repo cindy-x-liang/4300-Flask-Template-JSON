@@ -356,10 +356,7 @@ def json_search(query,age=None,gender=None,pricing=None):
 
     return json.dumps(result_final)
     
-
-
-
-
+    
 @app.route("/")
 def home():
     return render_template('base.html',title="sample html")
