@@ -2,13 +2,24 @@
 
 ## Contents
 
-- [Summary](#summary)
-- [Deploying on the server](#deploying-on-the-server )
-- [Running Locally](#running-locally)
-- [Uploading Large Files](#uploading-large-files)
-- [MySQL functionality](#mysql-functionality)
-- [Debugging Some Basic Errors](#debugging-some-basic-errors)
-- [General comments from the author](#general-comments-from-the-author)
+- [4300-Flask-Template](#4300-flask-template)
+  - [Contents](#contents)
+  - [Summary](#summary)
+  - [Deploying on the server](#deploying-on-the-server)
+    - [Step 0: Forking or Cloning this template](#step-0-forking-or-cloning-this-template)
+    - [Step 1: Login to the deployment dashboard](#step-1-login-to-the-deployment-dashboard)
+    - [Step 2: Understanding the interface](#step-2-understanding-the-interface)
+    - [Step 3: Test deployment](#step-3-test-deployment)
+  - [Running locally](#running-locally)
+    - [Step 1: Set up MySQL](#step-1-set-up-mysql)
+    - [Step 2: Set up a virtual environment](#step-2-set-up-a-virtual-environment)
+    - [Step 3: Install dependencies](#step-3-install-dependencies)
+    - [Step 4: Connection to MySQL](#step-4-connection-to-mysql)
+  - [NOTE: Post bugfix:](#note-post-bugfix)
+  - [Uploading Large Files](#uploading-large-files)
+  - [MySQL functionality](#mysql-functionality)
+  - [Debugging Some Basic Errors](#debugging-some-basic-errors)
+  - [General comments from the author](#general-comments-from-the-author)
 
 ## Summary
 
