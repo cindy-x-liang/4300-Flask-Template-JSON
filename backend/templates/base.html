@@ -44,12 +44,12 @@
     </div>
 
     <script>
-        document.getElementByID(form).addEventListener('submit', function (e) {
+        document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
-            var description = document.getElementByID('description').value;
-            var age = document.getElementByID('age').value;
-            var gender = document.getElementByID('gender').value;
-            var price = document.getElementByID('price').value;
+            var description = document.getElementById('filter-text-val').value;
+            var age = document.getElementById('age').value;
+            var gender = document.getElementById('gender').value;
+            var price = document.getElementById('price').value;
             var data = {
                 description: description,
                 age: age,
@@ -63,6 +63,15 @@
                 },
                 body: JSON.stringify(data)
             })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed")
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);
+                })
         })
 
         function answerBoxTemplate(title, titleDesc, rating) {
