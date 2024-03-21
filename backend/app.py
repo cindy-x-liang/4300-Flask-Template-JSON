@@ -344,8 +344,8 @@ def json_search(query,age=None,gender=None,pricing=None):
     
     result_final =[]
     for i in range(10):
-        result_final.append({'solution': doc_id_to_product[results[i][1]]['product_name']})
-        print(doc_id_to_product[results[i][1]]['product_name'])
+        result_final.append({'name': doc_id_to_product[results[i][1]]['product_name'], 'descr':doc_id_to_product[results[i][1]]['about_product'], 'url': doc_id_to_product[results[i][1]]['product_link']})
+        #print(doc_id_to_product[results[i][1]]['product_name'])
 
     return json.dumps(result_final)
     
