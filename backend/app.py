@@ -63,7 +63,6 @@ def tokenize(text: str) -> List[str]:
     List[str]
         A list of strings representing the words in the text.
     """
-    # TODO-2.1
     text = text.lower()
     return re.findall(r'[a-z]+', text)
 
@@ -100,7 +99,6 @@ def build_inverted_index(msgs:dict) -> dict:
     [(0, 1)]
 
     """
-    # TODO-3.1
     solution = {}
     for i in msgs:
       tokens = msgs[i]
@@ -149,8 +147,6 @@ def compute_idf(inv_idx, n_docs, min_df=10, max_df_ratio=0.95):
         For each term, the dict contains the idf value.
 
     """
-
-    # TODO-5.1
     import math
     solution = {}
     for word in inv_idx:
@@ -176,8 +172,6 @@ def compute_doc_norms(index, idf, n_docs):
     norms: np.array, size: n_docs
         norms[i] = the norm of document i.
     """
-
-    # TODO-6.1
     import math
     solution = [0] * n_docs
     doc_sums = {}
@@ -213,8 +207,6 @@ def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> di
     doc_scores: dict
         Dictionary mapping from doc ID to the final accumulated score for that doc
     """
-    # TODO-7.1
-
     doc_sums = {}
     for word in index:
       if word in query_word_counts and query_word_counts[word]!=0 and word in idf:
@@ -317,9 +309,10 @@ def price_to_int(price):
 def json_search(query,age=None,gender=None,pricing=None):
     #first filter out products given age, gender, and pricing
     filtered_data = []
+    print(pricing)
     for item in data:
-      item_price = item['Selling Price']
-      #print(item_price)
+      item_price = item['actual_price']
+      #print(price_to_int(item_price))
       if price_to_int(item_price) < pricing:
          filtered_data.append(item)
 
@@ -328,7 +321,7 @@ def json_search(query,age=None,gender=None,pricing=None):
     dict_products = {}
     count = 1
     for i in filtered_data:
-        dict_products[count] = tokenize(i['About Product'])
+        dict_products[count] = tokenize(i['about_product'])
         count+=1
 
     dict_products[1]
@@ -342,7 +335,7 @@ def json_search(query,age=None,gender=None,pricing=None):
     doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
     #query = 'Star Wars Han Solo'
     results = index_search(query, inv_idx, idf, doc_norms)
-
+    print(results)
     doc_id_to_product = {}
     count = 1
     for i in filtered_data:
@@ -351,8 +344,8 @@ def json_search(query,age=None,gender=None,pricing=None):
     
     result_final =[]
     for i in range(10):
-        result_final.append({'solution': doc_id_to_product[results[i][1]]['Product Name']})
-        print(doc_id_to_product[results[i][1]]['Product Name'])
+        result_final.append({'solution': doc_id_to_product[results[i][1]]['product_name']})
+        print(doc_id_to_product[results[i][1]]['product_name'])
 
     return json.dumps(result_final)
     
