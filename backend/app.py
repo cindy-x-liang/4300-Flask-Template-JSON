@@ -313,17 +313,17 @@ with open(json_file_path) as f_2:
 #closest_words helper function -- cosine similarity
 def closest_words(wti, word_in, words_representation_in, k = 10):
   index_to_word = {i:t for t,i in wti.items()}
-  print(word_in not in wti)
+  # print(word_in not in wti)
   if word_in not in wti: return "Not in vocab."
   #print("reached")
-  print("but reached here")
+  #print("but reached here")
 
   sims = words_representation_in.dot(words_representation_in[wti[word_in],:])
   #print("reached")
-  print("but reached here")
+  #print("but reached here")
   asort = np.argsort(-sims)[:k+1]
-  print("reached")
-  print([(index_to_word[i],sims[i]) for i in asort[1:]])
+  #print("reached")
+  #print([(index_to_word[i],sims[i]) for i in asort[1:]])
   return [(index_to_word[i],sims[i]) for i in asort[1:]]
 
 def test_func():
@@ -335,17 +335,18 @@ def test_func():
   #print(type(vectorizer))
   #we're using the descriptions as our "documents"
   td_matrix = vectorizer.fit_transform([x[2] for x in documentss])
-  print(type(td_matrix))
-  print(td_matrix.shape)
+  # print(type(td_matrix))
+  # print(td_matrix.shape)
   """
   output for shape is (1191,234) -> 1191 docs, 234 words in vocab
   """
   #run SVD
   docs_compressed, s, words_compressed = svds(td_matrix, k=40)
-  print(docs_compressed.shape)
-  print(s.shape)
-  #40 is size of latent dim, 234 in vocab
-  print(words_compressed.shape)
+  words_compressed = words_compressed.transpose()
+  # print(docs_compressed.shape)
+  # print(s.shape)
+  # #40 is size of latent dim, 234 in vocab
+  # print(words_compressed.shape)
 
   #print(words_compressed)
   #doc to term representation
@@ -354,7 +355,7 @@ def test_func():
   #index_to_word = {i:t for t,i in word_to_index.items()}
   words_compressed_normed = normalize(words_compressed, axis = 1)
 
-  word = 'premium'
+  word = 'charger'
   print("Using SVD:")
   try:
     for w, sim in closest_words(word_to_index, word, words_compressed_normed):
@@ -365,6 +366,15 @@ def test_func():
     print()
   except:
      print("need better word")
+
+  itw2 = {i:t for t,i in word_to_index.items()}
+
+  for i in range(40):
+    print("Top words in dimension", i)
+    dimension_col = words_compressed[:,i].squeeze()
+    asort = np.argsort(-dimension_col)
+    print([itw2[i] for i in asort[:10]])
+    print()
 
 """
 SVD -- Finish
