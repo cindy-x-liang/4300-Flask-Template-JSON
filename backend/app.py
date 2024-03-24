@@ -228,7 +228,7 @@ def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> di
     doc_scores: dict
         Dictionary mapping from doc ID to the final accumulated score for that doc
     """
-    print(query_word_counts)
+    #print(query_word_counts)
     doc_sums = {}
     for word in index:
       if word in query_word_counts and query_word_counts[word]!=0 and word in idf:
@@ -285,7 +285,7 @@ def index_search(
     # TODO-8.1
     import math
     query_tokens = re.findall(r'[a-z]+', query.lower())
-    print(query_tokens)
+    #print(query_tokens)
     query_word_counts = {}
     for token in query_tokens:
       if token in query_word_counts:
@@ -313,15 +313,15 @@ Cosine Similarity Calculation Functions -- Finish
 SVD -- Start
 """
 with open(json_file_path) as f_2:
-    documentss = [(x['product_name'], x['category'], x['about_product'])
+    documentss = [(x['title'], x['main_category'], x['description'][0])
                  for x in json.load(f_2)
-                 if len(x['about_product'].split()) > 50]
+                 if len(x['description'][0].split()) > 50]
 
 #cosine similarity
 #closest_words helper function -- cosine similarity
 def closest_words(wti, word_in, words_representation_in, k = 10):
   index_to_word = {i:t for t,i in wti.items()}
-  # print(word_in not in wti)
+  print(word_in not in wti)
   if word_in not in wti: return "Not in vocab."
   #print("reached")
   #print("but reached here")
@@ -333,6 +333,7 @@ def closest_words(wti, word_in, words_representation_in, k = 10):
   #print("reached")
   #print([(index_to_word[i],sims[i]) for i in asort[1:]])
   return [(index_to_word[i],sims[i]) for i in asort[1:]]
+
 
 def test_func():
   #  print(documentss[0][0])
@@ -363,26 +364,46 @@ def test_func():
   #index_to_word = {i:t for t,i in word_to_index.items()}
   words_compressed_normed = normalize(words_compressed, axis = 1)
 
-  word = 'charger'
-  print("Using SVD:")
-  try:
-    for w, sim in closest_words(word_to_index, word, words_compressed_normed):
-      try:
-        print("{}, {:.3f}".format(w, sim))
-      except:
-        print("word not found")
-    print()
-  except:
-     print("need better word")
+  # word = 'Makeup'
+  # print("Using SVD:")
+  # try:
+  #   for w, sim in closest_words(word_to_index, word, words_compressed_normed):
+  #     try:
+  #       print("{}, {:.3f}".format(w, sim))
+  #     except:
+  #       print("word not found")
+  #   print()
+  # except:
+  #    print("need better word")
 
-  itw2 = {i:t for t,i in word_to_index.items()}
 
-  for i in range(40):
-    print("Top words in dimension", i)
-    dimension_col = words_compressed[:,i].squeeze()
-    asort = np.argsort(-dimension_col)
-    print([itw2[i] for i in asort[:10]])
-    print()
+  query = "Star Trek Toy stars space galaxy lasers"
+  query_tfidf = vectorizer.transform([query]).toarray()
+  #should be (1,vocab)
+  query_tfidf.shape
+
+  #words_compressed is shape (latent,vocab)
+  query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
+
+  docs_compressed_normed = normalize(docs_compressed)
+
+  #number of res
+  k = 5
+  sims = docs_compressed_normed.dot(query_vec)
+  asort = np.argsort(-sims)[:k+1]
+  res = [(i, documentss[i][0],sims[i]) for i in asort[1:]]
+
+  for i, proj, sim in res:
+    print("({}, {}, {:.4f}".format(i, proj, sim))
+
+  #itw2 = {i:t for t,i in word_to_index.items()}
+
+  # for i in range(40):
+  #   print("Top words in dimension", i)
+  #   dimension_col = words_compressed[:,i].squeeze()
+  #   asort = np.argsort(-dimension_col)
+  #   print([itw2[i] for i in asort[:10]])
+  #   print()
 
 """
 SVD -- Finish
@@ -419,7 +440,7 @@ def price_to_int(price):
           index += 1
     
     #print(res)
-    return int(res[1:]) + 1
+    return int(res) + 1
     # period_index = price.find(".") #find where the period is
     # number = price[1:period_index] #take just the number
     # return int(number) + 1 #round up
@@ -430,8 +451,8 @@ def price_to_int(price):
 #general filter function called to filter original data according to filters
 def filter(original_data,age = None,gender = None,pricing= None):
    filtered_data = []
-   for item in data:
-      item_price = item['actual_price']
+   for item in original_data:
+      item_price = item['price']
       #print(price_to_int(item_price))
       if price_to_int(item_price) < int(pricing):
          #print(price_to_int(item_price))
@@ -448,16 +469,19 @@ def json_search(query,age=None,gender=None,pricing=None):
     #run cosine similariity using query 
     dict_products = {}
     count = 1
+    
+    print(type(filtered_data[0]['description'][0]))
     for i in filtered_data:
+        #print(i['description'][0])
+        
+        #?
         dict_products[count] = tokenize(i['description'])
         count+=1
 
     #dict_products[1]
     
     inv_indx = build_inverted_index(dict_products)
-    idf = compute_idf(inv_indx, len(filtered_data),
-                  min_df=10,
-                  max_df_ratio=0.1) 
+    idf = compute_idf(inv_indx, len(filtered_data)) 
 
     #inverted index for good words only 
     inv_idx = {key: val for key, val in inv_indx.items()
@@ -475,14 +499,23 @@ def json_search(query,age=None,gender=None,pricing=None):
         count+=1
     
     result_final =[]
-    try:
-      for i in range(10):
-          result_final.append({'name': doc_id_to_product[results[i][1]]['product_name'], 'descr':doc_id_to_product[results[i][1]]['about_product'], 'url': doc_id_to_product[results[i][1]]['product_link']})
-        #print(doc_id_to_product[results[i][1]]['product_name'])
-      return json.dumps(result_final)
 
+    try:
+      for i in range(min(10,len(results))):          
+        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+          #print(doc_id_to_product[results[i][1]]['product_name'])
+      return json.dumps(result_final)
     except:
-       return json.dumps({"error" : "not enough products"})
+       return json.dumps({"error" : "something went wrong"})
+
+    # try:
+    #   for i in range(10):
+    #       result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+    #     #print(doc_id_to_product[results[i][1]]['product_name'])
+    #   return json.dumps(result_final)
+
+    # except:
+    #    return json.dumps({"error" : "not enough products"})
 """
 Helper Functions -- Finish
 """   
@@ -518,8 +551,8 @@ def episodes_search():
 
     # print(text)
     # print(type(pricing))
-    #return json_search(text,pricing=pricing)
-    return json.dumps({"message" : "hello"})
+    return json_search(text,pricing=pricing)
+    #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=8000)
