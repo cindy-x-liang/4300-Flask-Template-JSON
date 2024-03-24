@@ -10,6 +10,11 @@ import numpy as np
 from numpy import linalg as LA
 import json
 import math
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import normalize
+from scipy.sparse.linalg import svds
+
+
 
 #test
 # ROOT_PATH for linking with all your files. 
@@ -19,6 +24,9 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 # Get the directory of the current script
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
+"""
+Loading in data -- Start
+"""
 # Specify the path to the JSON file relative to the current script
 json_file_path = os.path.join(current_directory, 'results.json')
 
@@ -32,6 +40,10 @@ f = open(json_file_path)
 data = json.load(f)
 print("JSON succesfully loaded!")
 f.close()
+
+"""
+Loading in data -- Finish
+"""
 
 app = Flask(__name__)
 CORS(app)
@@ -47,6 +59,10 @@ from numpy import linalg as LA
 import json
 import math
 
+
+"""
+Cosine Similarity Calculation Functions -- Start
+"""
 def tokenize(text: str) -> List[str]:
     """Returns a list of words that make up the text.
     
@@ -212,7 +228,7 @@ def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> di
     doc_scores: dict
         Dictionary mapping from doc ID to the final accumulated score for that doc
     """
-    print(query_word_counts)
+    #print(query_word_counts)
     doc_sums = {}
     for word in index:
       if word in query_word_counts and query_word_counts[word]!=0 and word in idf:
@@ -269,7 +285,7 @@ def index_search(
     # TODO-8.1
     import math
     query_tokens = re.findall(r'[a-z]+', query.lower())
-    print(query_tokens)
+    #print(query_tokens)
     query_word_counts = {}
     for token in query_tokens:
       if token in query_word_counts:
@@ -290,10 +306,115 @@ def index_search(
     solution.sort(key=lambda x:x[0], reverse = True)
     return solution
 
+"""
+Cosine Similarity Calculation Functions -- Finish
+"""
+"""
+SVD -- Start
+"""
+with open(json_file_path) as f_2:
+    documentss = [(x['title'], x['main_category'], x['description'][0])
+                 for x in json.load(f_2)
+                 if len(x['description'][0].split()) > 50]
+
+#cosine similarity
+#closest_words helper function -- cosine similarity
+def closest_words(wti, word_in, words_representation_in, k = 10):
+  index_to_word = {i:t for t,i in wti.items()}
+  print(word_in not in wti)
+  if word_in not in wti: return "Not in vocab."
+  #print("reached")
+  #print("but reached here")
+
+  sims = words_representation_in.dot(words_representation_in[wti[word_in],:])
+  #print("reached")
+  #print("but reached here")
+  asort = np.argsort(-sims)[:k+1]
+  #print("reached")
+  #print([(index_to_word[i],sims[i]) for i in asort[1:]])
+  return [(index_to_word[i],sims[i]) for i in asort[1:]]
+
+
+def test_func():
+  #  print(documentss[0][0])
+  #  print(documentss[0][1])
+  #  print(documentss[0][2])
+  vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .7,
+                            min_df = 75)
+  #print(type(vectorizer))
+  #we're using the descriptions as our "documents"
+  td_matrix = vectorizer.fit_transform([x[2] for x in documentss])
+  # print(type(td_matrix))
+  # print(td_matrix.shape)
+  """
+  output for shape is (1191,234) -> 1191 docs, 234 words in vocab
+  """
+  #run SVD
+  docs_compressed, s, words_compressed = svds(td_matrix, k=40)
+  words_compressed = words_compressed.transpose()
+  # print(docs_compressed.shape)
+  # print(s.shape)
+  # #40 is size of latent dim, 234 in vocab
+  # print(words_compressed.shape)
+
+  #print(words_compressed)
+  #doc to term representation
+  word_to_index = vectorizer.vocabulary_
+  #print(word_to_index.keys())
+  #index_to_word = {i:t for t,i in word_to_index.items()}
+  words_compressed_normed = normalize(words_compressed, axis = 1)
+
+  # word = 'Makeup'
+  # print("Using SVD:")
+  # try:
+  #   for w, sim in closest_words(word_to_index, word, words_compressed_normed):
+  #     try:
+  #       print("{}, {:.3f}".format(w, sim))
+  #     except:
+  #       print("word not found")
+  #   print()
+  # except:
+  #    print("need better word")
+
+
+  query = "Star Trek Toy stars space galaxy lasers"
+  query_tfidf = vectorizer.transform([query]).toarray()
+  #should be (1,vocab)
+  query_tfidf.shape
+
+  #words_compressed is shape (latent,vocab)
+  query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
+
+  docs_compressed_normed = normalize(docs_compressed)
+
+  #number of res
+  k = 5
+  sims = docs_compressed_normed.dot(query_vec)
+  asort = np.argsort(-sims)[:k+1]
+  res = [(i, documentss[i][0],sims[i]) for i in asort[1:]]
+
+  for i, proj, sim in res:
+    print("({}, {}, {:.4f}".format(i, proj, sim))
+
+  #itw2 = {i:t for t,i in word_to_index.items()}
+
+  # for i in range(40):
+  #   print("Top words in dimension", i)
+  #   dimension_col = words_compressed[:,i].squeeze()
+  #   asort = np.argsort(-dimension_col)
+  #   print([itw2[i] for i in asort[:10]])
+  #   print()
+
+"""
+SVD -- Finish
+"""
+"""
+Helper Functions -- Start
+"""
 #this function takes in an integer and returns a category
 def get_age_category(age):
    if age > 0 and age < 13:
-      return "Kid"
+      return "Child"
    elif age > 12 and age < 19:
       return "Teenager"
    elif age > 18 and age < 26:
@@ -305,40 +426,71 @@ def get_age_category(age):
 
 #this function converts the database string repr of price into an integer
 def price_to_int(price):
+  res = ""
   try:
-    period_index = price.find(".") #find where the period is
-    number = price[1:period_index] #take just the number
-    return int(number) + 1 #round up
+    index = 0
+    while index < len(price):
+       if price[index] == ".":
+          break #round up
+       elif price[index] == ",":
+          index += 1
+          continue
+       else:
+          res += price[index]
+          index += 1
+    
+    #print(res)
+    return int(res) + 1
+    # period_index = price.find(".") #find where the period is
+    # number = price[1:period_index] #take just the number
+    # return int(number) + 1 #round up
   except:
-    return 0 #just return small number
+    #print("runs")
+    return 0 #just return small number -- if price is None
+
+#general filter function called to filter original data according to filters
+def filter(original_data,age = None,gender = None,pricing= None):
+   filtered_data = []
+   for item in original_data:
+      item_price = item['price']
+      #print(price_to_int(item_price))
+      if price_to_int(item_price) < int(pricing):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+   return filtered_data
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
 def json_search(query,age=None,gender=None,pricing=None):
     #first filter out products given age, gender, and pricing
-    filtered_data = []
-    print(pricing)
-    for item in data:
-      item_price = item['price']
-      #print(price_to_int(item_price))
-      if price_to_int(item_price) < pricing:
-         filtered_data.append(item)
+    filtered_data = filter(data,age,gender,pricing)
 
     #filtered_data = data
     #run cosine similariity using query 
     dict_products = {}
     count = 1
+    
+    print(type(filtered_data[0]['description'][0]))
     for i in filtered_data:
+        #print(i['description'][0])
+        
+        #?
         dict_products[count] = tokenize(i['description'])
         count+=1
 
+    #dict_products[1]
+    
     inv_indx = build_inverted_index(dict_products)
     idf = compute_idf(inv_indx, len(filtered_data)) 
+
+    #inverted index for good words only 
     inv_idx = {key: val for key, val in inv_indx.items()
             if key in idf} 
     doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
 
+    #runs cosine similarity
     results = index_search(query, inv_idx, idf, doc_norms)
+    #print(results)
 
     doc_id_to_product = {}
     count = 1
@@ -347,12 +499,26 @@ def json_search(query,age=None,gender=None,pricing=None):
         count+=1
     
     result_final =[]
-    for i in range(min(10,len(results))):
-        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
-  
 
-    return json.dumps(result_final)
-    
+    try:
+      for i in range(min(10,len(results))):          
+        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+          #print(doc_id_to_product[results[i][1]]['product_name'])
+      return json.dumps(result_final)
+    except:
+       return json.dumps({"error" : "something went wrong"})
+
+    # try:
+    #   for i in range(10):
+    #       result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+    #     #print(doc_id_to_product[results[i][1]]['product_name'])
+    #   return json.dumps(result_final)
+
+    # except:
+    #    return json.dumps({"error" : "not enough products"})
+"""
+Helper Functions -- Finish
+"""   
     
 @app.route("/")
 def home():
@@ -367,10 +533,12 @@ Filters:
 
 @app.route("/episodes", methods = ['POST'])
 def episodes_search():
-    data = request.json
-    text = data["title"] #query -- ex. Star Wars Action Figure
+    test_func()
+
+    request_data = request.json
+    text = request_data["title"] #query -- ex. Star Wars Action Figure
     #optional filters -- ***if not used then pass in empty string "" ***
-    age = data["age"] #number ex. 17 that we classify into child, teen, YA, adult, old
+    age = request_data["age"] #number ex. 17 that we classify into child, teen, YA, adult, old
     """
     child: 0-13
     Teen: 13-18
@@ -378,12 +546,13 @@ def episodes_search():
     Adult: 25-60
     Old: 60+
     """
-    gender = data["gender"] #either Male or Female
-    pricing = data["pricing"] #limit of how much user wants to spend ex. 100
+    gender = request_data["gender"] #either Male or Female
+    pricing = request_data["pricing"] #limit of how much user wants to spend ex. 100
 
     # print(text)
     # print(type(pricing))
     return json_search(text,pricing=pricing)
+    #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=8000)
