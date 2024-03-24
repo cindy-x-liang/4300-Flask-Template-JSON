@@ -285,7 +285,7 @@ def index_search(
 #this function takes in an integer and returns a category
 def get_age_category(age):
    if age > 0 and age < 13:
-      return "Kid"
+      return "Child"
    elif age > 12 and age < 19:
       return "Teenager"
    elif age > 18 and age < 26:
@@ -297,24 +297,43 @@ def get_age_category(age):
 
 #this function converts the database string repr of price into an integer
 def price_to_int(price):
+  res = ""
   try:
-    period_index = price.find(".") #find where the period is
-    number = price[1:period_index] #take just the number
-    return int(number) + 1 #round up
+    index = 0
+    while index < len(price):
+       if price[index] == ".":
+          break #round up
+       elif price[index] == ",":
+          index += 1
+          continue
+       else:
+          res += price[index]
+          index += 1
+    
+    #print(res)
+    return int(res[1:]) + 1
+    # period_index = price.find(".") #find where the period is
+    # number = price[1:period_index] #take just the number
+    # return int(number) + 1 #round up
   except:
-    return 0 #just return small number
+    #print("runs")
+    return 0 #just return small number -- if price is None
+
+def filter(original_data,age = None,gender = None,pricing= None):
+   filtered_data = []
+   for item in data:
+      item_price = item['actual_price']
+      #print(price_to_int(item_price))
+      if price_to_int(item_price) < int(pricing):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+   return filtered_data
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
 def json_search(query,age=None,gender=None,pricing=None):
     #first filter out products given age, gender, and pricing
-    filtered_data = []
-    print(pricing)
-    for item in data:
-      item_price = item['actual_price']
-      #print(price_to_int(item_price))
-      if price_to_int(item_price) < pricing:
-         filtered_data.append(item)
+    filtered_data = filter(data,age,gender,pricing)
 
     #filtered_data = data
     #run cosine similariity using query 
@@ -335,7 +354,7 @@ def json_search(query,age=None,gender=None,pricing=None):
     doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
     #query = 'Star Wars Han Solo'
     results = index_search(query, inv_idx, idf, doc_norms)
-    print(results)
+    #print(results)
     doc_id_to_product = {}
     count = 1
     for i in filtered_data:
@@ -343,11 +362,14 @@ def json_search(query,age=None,gender=None,pricing=None):
         count+=1
     
     result_final =[]
-    for i in range(10):
-        result_final.append({'name': doc_id_to_product[results[i][1]]['product_name'], 'descr':doc_id_to_product[results[i][1]]['about_product'], 'url': doc_id_to_product[results[i][1]]['product_link']})
+    try:
+      for i in range(10):
+          result_final.append({'name': doc_id_to_product[results[i][1]]['product_name'], 'descr':doc_id_to_product[results[i][1]]['about_product'], 'url': doc_id_to_product[results[i][1]]['product_link']})
         #print(doc_id_to_product[results[i][1]]['product_name'])
+      return json.dumps(result_final)
 
-    return json.dumps(result_final)
+    except:
+       return json.dumps({"error" : "not enough products"})
     
     
 @app.route("/")
