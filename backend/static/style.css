@@ -78,9 +78,8 @@
 }
 
 #answer-box {
-    position: absolute;
     width: 700px;
-    align-items: center;
+
     margin-top: 275px;
 }
 

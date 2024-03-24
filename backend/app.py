@@ -28,7 +28,7 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 Loading in data -- Start
 """
 # Specify the path to the JSON file relative to the current script
-json_file_path = os.path.join(current_directory, 'init.json')
+json_file_path = os.path.join(current_directory, 'results.json')
 
 # Assuming your JSON data is stored in a file named 'init.json'
 # with open(json_file_path, 'r') as file:
@@ -79,8 +79,11 @@ def tokenize(text: str) -> List[str]:
     List[str]
         A list of strings representing the words in the text.
     """
-    text = text.lower()
-    return re.findall(r'[a-z]+', text)
+    if text:
+      text = text[0].lower()
+      return re.findall(r'[a-z]+', text)
+    else:
+       return ""
 
 def build_inverted_index(msgs:dict) -> dict:
     """Builds an inverted index from the messages.
@@ -136,7 +139,7 @@ def build_inverted_index(msgs:dict) -> dict:
       result[key] = temp
     return result
 
-def compute_idf(inv_idx, n_docs, min_df=10, max_df_ratio=0.95):
+def compute_idf(inv_idx, n_docs, min_df=2, max_df_ratio=0.95):
     """Compute term IDF values from the inverted index.
     Words that are too frequent or too infrequent get pruned.
 
@@ -167,6 +170,8 @@ def compute_idf(inv_idx, n_docs, min_df=10, max_df_ratio=0.95):
     solution = {}
     for word in inv_idx:
       if len(inv_idx[word]) >= min_df and (len(inv_idx[word])/n_docs) <= max_df_ratio:
+        if word == 'barbie':
+         print('here!')
         calc = n_docs/(1 + len(inv_idx[word]))
         calc = math.log2(calc)
         
@@ -223,6 +228,7 @@ def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> di
     doc_scores: dict
         Dictionary mapping from doc ID to the final accumulated score for that doc
     """
+    print(query_word_counts)
     doc_sums = {}
     for word in index:
       if word in query_word_counts and query_word_counts[word]!=0 and word in idf:
@@ -278,13 +284,15 @@ def index_search(
 
     # TODO-8.1
     import math
-    query_tokens = tokenizer(query.lower())
+    query_tokens = re.findall(r'[a-z]+', query.lower())
+    print(query_tokens)
     query_word_counts = {}
     for token in query_tokens:
       if token in query_word_counts:
         query_word_counts[token]+=1
       else:
         query_word_counts[token] = 1
+
     scores = score_func(query_word_counts,index,idf)
     query_norm = 0
     for word in query_tokens:
@@ -441,7 +449,7 @@ def json_search(query,age=None,gender=None,pricing=None):
     dict_products = {}
     count = 1
     for i in filtered_data:
-        dict_products[count] = tokenize(i['about_product'])
+        dict_products[count] = tokenize(i['description'])
         count+=1
 
     #dict_products[1]
@@ -455,10 +463,11 @@ def json_search(query,age=None,gender=None,pricing=None):
     inv_idx = {key: val for key, val in inv_indx.items()
             if key in idf} 
     doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
-    #query = 'Star Wars Han Solo'
+
     #runs cosine similarity
     results = index_search(query, inv_idx, idf, doc_norms)
     #print(results)
+
     doc_id_to_product = {}
     count = 1
     for i in filtered_data:
