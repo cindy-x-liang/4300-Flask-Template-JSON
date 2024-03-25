@@ -448,15 +448,25 @@ def price_to_int(price):
     #print("runs")
     return 0 #just return small number -- if price is None
 
+#converts database float repr of rating to int (round down)
+def average_rating_to_int(average_rating):
+   try:
+      return int(average_rating)
+   except:
+      return 0
+
 #general filter function called to filter original data according to filters
 def filter(original_data,age = None,gender = None,pricing= None):
    filtered_data = []
    for item in original_data:
       item_price = item['price']
+      avg_rating = item['average_rating']
       #print(price_to_int(item_price))
-      if price_to_int(item_price) < int(pricing):
+      #print(average_rating_to_int(avg_rating))
+      if (price_to_int(item_price) < int(pricing)) and (average_rating_to_int(avg_rating) > 2):
          #print(price_to_int(item_price))
          filtered_data.append(item)
+   #print(filtered_data)
    return filtered_data
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
@@ -502,7 +512,7 @@ def json_search(query,age=None,gender=None,pricing=None):
 
     try:
       for i in range(min(10,len(results))):          
-        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
           #print(doc_id_to_product[results[i][1]]['product_name'])
       return json.dumps(result_final)
     except:
