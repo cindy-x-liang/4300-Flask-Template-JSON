@@ -375,12 +375,12 @@ def filter_results_stars(results, doc_id_to_product):
       
       #print(float(doc_id_to_product[results[i][1]]['average_rating']))
       #print(results[i][0])
-      curr_product = results[i][0]
+     
       # print(abs(results[i][0]-results[i+1][0]))
-      # if (abs(results[i][0]-results[i+1][0]) < .01):
-      #    curr_product = results[i][0] * .95 + float(doc_id_to_product[results[i][1]]['average_rating'])*.001*.04 + int(doc_id_to_product[results[i][1]]['rating_number'])*.001*.01
-      # else:
-      #    curr_product = results[i][0]
+      if (abs(results[i][0]-results[i+1][0]) < .01):
+         curr_product = results[i][0] * .95 + float(doc_id_to_product[results[i][1]]['average_rating'])*.001*.04 + int(doc_id_to_product[results[i][1]]['rating_number'])*.001*.01
+      else:
+         curr_product = results[i][0]
       new_results.append((curr_product,results[i][1]))
       
     except:
