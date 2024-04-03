@@ -126,25 +126,7 @@ def compute_doc_norms(index, idf, n_docs):
     return solution
 
 def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> dict:
-    """Perform a term-at-a-time iteration to efficiently compute the numerator term of cosine similarity across multiple documents.
-
-    Arguments
-    =========
-
-    query_word_counts: dict,
-        A dictionary containing all words that appear in the query;
-        Each word is mapped to a count of how many times it appears in the query.
-        In other words, query_word_counts[w] = the term frequency of w in the query.
-        You may safely assume all words in the dict have been already lowercased.
-
-    index: the inverted index as above,
-
-    idf: dict,
-        Precomputed idf values for the terms.
-    doc_scores: dict
-        Dictionary mapping from doc ID to the final accumulated score for that doc
-    """
-    print(query_word_counts)
+  
     doc_sums = {}
     for word in index:
       if word in query_word_counts and query_word_counts[word]!=0 and word in idf:
@@ -290,6 +272,41 @@ def test_func():
 """
 SVD -- Finish
 """
+
+"""
+Functions for Query Filtering -- Start
+"""
+from nltk.stem import PorterStemmer
+import re
+
+#The below is for stemming
+splitter = re.compile(r"""
+    [.!?]       # split on punctuation
+    """, re.VERBOSE)
+query = "birthday gift for kids who like legos"
+stemmer=PorterStemmer()
+word_regex = re.compile(r"""
+    (\w+)
+    """, re.VERBOSE)
+def getstems(sent):
+    return [stemmer.stem(w.lower()) for w in word_regex.findall(sent)]
+
+#these are for removing stop words
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+
+
+stop_words = set(stopwords.words('english'))
+stop_words.add('gift') 
+stop_words.add('present') 
+
+"""
+Functions for Stemming -- End
+"""
+
+
+
 """
 Helper Functions -- Start
 """
@@ -351,6 +368,29 @@ def filter(original_data,age = None,gender = None,pricing= None):
    #print(filtered_data)
    return filtered_data
 
+def filter_results_stars(results, doc_id_to_product):
+   new_results = []
+   for i in range(len(results)-1):
+    try:
+      
+      #print(float(doc_id_to_product[results[i][1]]['average_rating']))
+      #print(results[i][0])
+      curr_product = results[i][0]
+      # print(abs(results[i][0]-results[i+1][0]))
+      # if (abs(results[i][0]-results[i+1][0]) < .01):
+      #    curr_product = results[i][0] * .95 + float(doc_id_to_product[results[i][1]]['average_rating'])*.001*.04 + int(doc_id_to_product[results[i][1]]['rating_number'])*.001*.01
+      # else:
+      #    curr_product = results[i][0]
+      new_results.append((curr_product,results[i][1]))
+      
+    except:
+       print('here')
+       new_results.append((results[i][0],results[i][1]))
+      #print('oops')
+   new_results.sort(key=lambda x:x[0], reverse = True)
+   return new_results
+
+
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
 def json_search(query,age=None,gender=None,pricing=None):
@@ -361,13 +401,33 @@ def json_search(query,age=None,gender=None,pricing=None):
     #run cosine similariity using query 
     dict_products = {}
     count = 1
+
+    #Perform stemming on the query
+    sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(query)]
+
+    allstemms=[w for sent in sent_words_lower_stemmed
+              for w in sent]
+    
+    #remove stop words from the query
+    final_query = []
+    for w in allstemms:
+        print(w)
+        if not (w in stop_words):
+            final_query.append(w)
+
+    query = ""
+    for w in final_query:
+       query = query + w + " "
     
     print(type(filtered_data[0]['description'][0]))
     for i in filtered_data:
         #print(i['description'][0])
         
         #?
-        dict_products[count] = tokenize(i['description'])
+        curr_product = []
+        for feature in i['features']:
+           curr_product += tokenize(feature)
+        dict_products[count] = curr_product+ tokenize(i['description'])
         count+=1
 
     #dict_products[1]
@@ -389,8 +449,8 @@ def json_search(query,age=None,gender=None,pricing=None):
     for i in filtered_data:
         doc_id_to_product[count] = i
         count+=1
-    
-    result_final =[]
+    result_final= []
+    results = filter_results_stars(results,doc_id_to_product)
 
     try:
       for i in range(min(10,len(results))):          
