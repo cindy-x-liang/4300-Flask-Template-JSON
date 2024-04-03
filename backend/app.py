@@ -64,21 +64,6 @@ import math
 Cosine Similarity Calculation Functions -- Start
 """
 def tokenize(text: str) -> List[str]:
-    """Returns a list of words that make up the text.
-    
-    Note: for simplicity, lowercase everything.
-    Requirement: Use Regex to satisfy this function
-    
-    Parameters
-    ----------
-    text : str
-        The input string to be tokenized.
-
-    Returns
-    -------
-    List[str]
-        A list of strings representing the words in the text.
-    """
     if text:
       text = text[0].lower()
       return re.findall(r'[a-z]+', text)
@@ -86,38 +71,7 @@ def tokenize(text: str) -> List[str]:
        return ""
 
 def build_inverted_index(msgs:dict) -> dict:
-    """Builds an inverted index from the messages.
 
-    Arguments
-    =========
-
-    msgs: list of dicts.
-        Each message in this list already has a 'toks'
-        field that contains the tokenized message.
-
-    Returns
-    =======
-
-    inverted_index: dict
-        For each term, the index contains
-        a sorted list of tuples (doc_id, count_of_term_in_doc)
-        such that tuples with smaller doc_ids appear first:
-        inverted_index[term] = [(d1, tf1), (d2, tf2), ...]
-
-    Example
-    =======
-
-    >> test_idx = build_inverted_index([
-    ...    {'toks': ['to', 'be', 'or', 'not', 'to', 'be']},
-    ...    {'toks': ['do', 'be', 'do', 'be', 'do']}])
-
-    >> test_idx['be']
-    [(0, 2), (1, 2)]
-
-    >> test_idx['not']
-    [(0, 1)]
-
-    """
     solution = {}
     for i in msgs:
       tokens = msgs[i]
@@ -140,33 +94,6 @@ def build_inverted_index(msgs:dict) -> dict:
     return result
 
 def compute_idf(inv_idx, n_docs, min_df=2, max_df_ratio=0.95):
-    """Compute term IDF values from the inverted index.
-    Words that are too frequent or too infrequent get pruned.
-
-    Hint: Make sure to use log base 2.
-
-    inv_idx: an inverted index as above
-
-    n_docs: int,
-        The number of documents.
-
-    min_df: int,
-        Minimum number of documents a term must occur in.
-        Less frequent words get ignored.
-        Documents that appear min_df number of times should be included.
-
-    max_df_ratio: float,
-        Maximum ratio of documents a term can occur in.
-        More frequent words get ignored.
-
-    Returns
-    =======
-
-    idf: dict
-        For each term, the dict contains the idf value.
-
-    """
-    import math
     solution = {}
     for word in inv_idx:
       if len(inv_idx[word]) >= min_df and (len(inv_idx[word])/n_docs) <= max_df_ratio:
@@ -182,18 +109,7 @@ def compute_idf(inv_idx, n_docs, min_df=2, max_df_ratio=0.95):
     return solution
 
 def compute_doc_norms(index, idf, n_docs):
-    """Precompute the euclidean norm of each document.
-    index: the inverted index as above
 
-    idf: dict,
-        Precomputed idf values for the terms.
-
-    n_docs: int,
-        The total number of documents.
-    norms: np.array, size: n_docs
-        norms[i] = the norm of document i.
-    """
-    import math
     solution = [0] * n_docs
     doc_sums = {}
     for word in index:
@@ -228,7 +144,7 @@ def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> di
     doc_scores: dict
         Dictionary mapping from doc ID to the final accumulated score for that doc
     """
-    #print(query_word_counts)
+    print(query_word_counts)
     doc_sums = {}
     for word in index:
       if word in query_word_counts and query_word_counts[word]!=0 and word in idf:
@@ -249,41 +165,7 @@ def index_search(
     score_func=accumulate_dot_scores,
     tokenizer=tokenize,
 ) -> List[Tuple[int, int]]:
-    """Search the collection of documents for the given query
 
-    Arguments
-    =========
-
-    query: string,
-        The query we are looking for.
-
-    index: an inverted index as above
-
-    idf: idf values precomputed as above
-
-    doc_norms: document norms as computed above
-
-    score_func: function,
-        A function that computes the numerator term of cosine similarity (the dot product) for all documents.
-        Takes as input a dictionary of query word counts, the inverted index, and precomputed idf values.
-        (See Q7)
-
-    tokenizer: a TreebankWordTokenizer
-
-    Returns
-    =======
-
-    results, list of tuples (score, doc_id)
-        Sorted list of results such that the first element has
-        the highest score, and `doc_id` points to the document
-        with the highest score.
-
-    Note:
-
-    """
-
-    # TODO-8.1
-    import math
     query_tokens = re.findall(r'[a-z]+', query.lower())
     #print(query_tokens)
     query_word_counts = {}
