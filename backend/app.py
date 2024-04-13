@@ -490,7 +490,7 @@ def episodes_search():
     request_data = request.json
     text = request_data["title"] #query -- ex. Star Wars Action Figure
     #optional filters -- ***if not used then pass in empty string "" ***
-    age = request_data["age"] #number ex. 17 that we classify into child, teen, YA, adult, old
+    #age = request_data["age"] #number ex. 17 that we classify into child, teen, YA, adult, old
     """
     child: 0-13
     Teen: 13-18
@@ -498,7 +498,7 @@ def episodes_search():
     Adult: 25-60
     Old: 60+
     """
-    gender = request_data["gender"] #either Male or Female
+    #gender = request_data["gender"] #either Male or Female
     pricing = request_data["pricing"] #limit of how much user wants to spend ex. 100
 
     # print(text)

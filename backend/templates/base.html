@@ -27,10 +27,6 @@
                     <input placeholder="Enter a description of the person you're buying a gift for"
                         id="filter-text-val">
                 </div>
-                <label for="age">Age:</label>
-                <input type="text" id="age" name="age" required>
-                <label for="gender">Gender:</label>
-                <input type="text" id="gender" name="gender" required>
                 <label for="price">Price:</label>
                 <input type="text" id="price" name="price" required>
                 <button type="submit">Submit</button>
@@ -47,13 +43,9 @@
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
             var description = document.getElementById('filter-text-val').value;
-            var age = Number(document.getElementById('age').value);
-            var gender = document.getElementById('gender').value;
             var price = Number(document.getElementById('price').value);
             var data = {
                 "title": description,
-                "age": age,
-                "gender": gender,
                 "pricing": price
             };
             document.getElementById("answer-box").innerHTML = ""
@@ -72,7 +64,7 @@
                 })
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url)
+                    tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating)
                     document.getElementById("answer-box").appendChild(tempDiv)
                 }))
                 .catch(error => {
@@ -80,11 +72,13 @@
                 });
         })
 
-        function answerBoxTemplate(title, titleDesc, rating) {
+        function answerBoxTemplate(title, titleDesc, link, price, rating) {
             return `<div class=''>
                 <h3 class='episode-title'>${title}</h3>
                 <p class='episode-desc'>${titleDesc}</p>
-                <p class='episode-rating'>Link to purchase: ${rating}</p>
+                <p class='episode-desc'>${rating}</p>
+                <p class='episode-desc'>${price}</p>
+                <p class='episode-rating'>Link to purchase: ${link}</p>
             </div>`
         }
 
