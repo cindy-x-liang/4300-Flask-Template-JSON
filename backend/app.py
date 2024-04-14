@@ -259,7 +259,7 @@ def print_singular_values(sigma):
    for i in sigma:
       print(i)
    
-def test_func():
+def test_func(query):
   #get_categories(documentss)
   #  print(documentss[0][0])
   #  print(documentss[0][1])
@@ -306,7 +306,7 @@ def test_func():
 
 
   #what if query vocab does not appear in original vocab? -- .transform() just ignore thems
-  query = "Skincare cleanser for girl with oily skin"
+  
   query = query.lower()
 
   #checks which terms in query are in vocab/check for query strength
@@ -366,11 +366,25 @@ def test_func():
   k = 5
   sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
   asort = np.argsort(-sims)[:k+1]
-  res = [(i, documentss[i][0],sims[i]) for i in asort[1:]]
+  res = [(i, documentss[i][0],documentss[i][1],sims[i]) for i in asort[1:]]
 
-  for i, proj, sim in res:
-    print("({}, {}, {:.4f}".format(i, proj, sim))
-
+  most_freq_cat = {}
+  for i, proj, cat ,sim in res:
+    print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
+    if cat in most_freq_cat:
+       most_freq_cat[cat] += 1
+    else:
+       most_freq_cat[cat] = 1
+  
+  most_freq_cat_str = ""
+  max = 0
+  for i in list(most_freq_cat.keys()):
+     if most_freq_cat[i] > max:
+        max = most_freq_cat[i]
+        most_freq_cat_str = i
+     
+  print("most freq category: ")
+  print(most_freq_cat_str)
   #next section displays the words that are expressed the most in latent dimensions
   itw2 = {i:t for t,i in word_to_index.items()}
 
@@ -380,6 +394,132 @@ def test_func():
     asort = np.argsort(-dimension_col)
     print([itw2[i] for i in asort[:10]])
     print()
+
+    return most_freq_cat_str
+  
+def improved_svd(query):
+  category = test_func(query)
+  # print("Category: " + category)
+  #filter out documents by the chosen category
+  new_documents = []
+  for i in documentss:
+     if i[1] == category:
+        #print(i[1])
+        new_documents.append(i)
+
+  #restrictions relaxed a little
+  vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .7,
+                            min_df = 25)
+  
+  #print(vectorizer)
+  #we're using the descriptions as our "documents"
+  td_matrix = vectorizer.fit_transform([x[2] for x in new_documents])
+  # print(type(td_matrix))
+  print(td_matrix.shape)
+  """
+  output for shape is (2852,340) -> 2852 docs, 340 words in vocab
+  """
+  #run SVD
+  k = 10
+  docs_compressed, s, words_compressed = svds(td_matrix, k)
+  #print_singular_values(s)
+  words_compressed = words_compressed.transpose()
+  # print(docs_compressed.shape)
+  # print(s.shape)
+  # #40 is size of latent dim, 234 in vocab
+  # print(words_compressed.shape)
+
+  #print(words_compressed)
+  #doc to term representation
+  word_to_index = vectorizer.vocabulary_
+  #print(word_to_index.keys())
+  #index_to_word = {i:t for t,i in word_to_index.items()}
+  words_compressed_normed = normalize(words_compressed, axis = 1)
+
+  # word = 'Makeup'
+  # print("Using SVD:")
+  # try:
+  #   for w, sim in closest_words(word_to_index, word, words_compressed_normed):
+  #     try:
+  #       print("{}, {:.3f}".format(w, sim))
+  #     except:
+  #       print("word not found")
+  #   print()
+  # except:
+  #    print("need better word")
+
+
+  #what if query vocab does not appear in original vocab? -- .transform() just ignore thems
+  
+  query = query.lower()
+
+  #checks which terms in query are in vocab/check for query strength
+  query_strength = 0
+  total = 0
+  q_words = query.split()
+  print(q_words)
+  for i in q_words:
+    if i in word_to_index:
+        query_strength += 1
+        print(i + " is in vocab")
+    total += 1
+
+  query_strength /= total
+  print("query strength " + str(query_strength))
+  
+  """
+  each entry in query_tfidf is from 0-1, describes the tfidf weight of the term
+  if the tdidf weight is close 1, that means the word appears alot in the query
+  AND it doesn't appear that frequently in other docs (ex. "the")
+  """
+  query_tfidf = vectorizer.transform([query]).toarray()
+  #should be (1,vocab) -- weights
+  print("query tfidf")
+  # print(query_tfidf) 
+  print(query_tfidf.shape)
+
+  #words_compressed is shape (latent,vocab)
+  """
+  words compressed is each word expressed in terms of latent dimensions (vocab, latent dim)
+  query_tfidf is as described above, with shape (1,vocab)
+
+  we perform matrix multiplication (using np.dot) to "project the representation of our query onto latent dim
+
+  the end result is (10,), in other words an array of length latent dimension
+  each value is how much the query matches up with latent dimension
+
+  values are between [-1,1]
+
+  positive values mean more relevant it is to that dim
+  ex. if the dim was sports, query would have words like soccer basketball
+
+  negative values mean more irrelevant it is to that dim
+  ex. if the dim was sports, query would have words like robot, alien
+
+  higher magnitude values ex. 0.5 vs 0.9 mean that it has more of an influence
+  """
+  query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
+  #query vec 
+  print("query_vec")
+  print(query_vec)
+  print(query_vec.shape)
+
+  docs_compressed_normed = normalize(docs_compressed)
+
+  #number of res
+  k = 5
+  sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
+  asort = np.argsort(-sims)[:k+1]
+  res = [(i, new_documents[i][0],new_documents[i][1],sims[i]) for i in asort[1:]]
+
+  #most_freq_cat = {}
+  for i, proj, cat ,sim in res:
+    print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
+    # if cat in most_freq_cat:
+    #    most_freq_cat[cat] += 1
+    # else:
+    #    most_freq_cat[cat] = 1
+   
 
 """
 Improve SVD by categorization
@@ -601,7 +741,8 @@ Filters:
 
 @app.route("/episodes", methods = ['POST'])
 def episodes_search():
-    test_func()
+    #test_func("Skincare cleanser for girl with oily skin")
+    improved_svd("Skincare cleanser for girl with oily skin")
 
     request_data = request.json
     text = request_data["title"] #query -- ex. Star Wars Action Figure
