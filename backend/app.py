@@ -177,9 +177,12 @@ Cosine Similarity Calculation Functions -- Finish
 SVD -- Start
 """
 with open(json_file_path) as f_2:
+    #only take docs whose description is more than 50 words
     documentss = [(x['title'], x['main_category'], x['description'][0])
                  for x in json.load(f_2)
                  if len(x['description'][0].split()) > 50]
+    
+    
 
 #cosine similarity
 #closest_words helper function -- cosine similarity
@@ -198,8 +201,66 @@ def closest_words(wti, word_in, words_representation_in, k = 10):
   #print([(index_to_word[i],sims[i]) for i in asort[1:]])
   return [(index_to_word[i],sims[i]) for i in asort[1:]]
 
+"""
+Prints the categories of our data
+"""
+def get_categories(data):
+  d1 = {} 
+  for i in data:
+    curr_category = i[1] #main category
+    if curr_category in d1:
+       d1[curr_category] += 1
+    else:
+       d1[curr_category] = 1
 
+  for i in list(d1.keys()):
+     print(str(i) + " : " + str(d1[i]))
+
+  """
+  This are the main categories of our dataset:
+  All Beauty : 247
+  AMAZON FASHION : 320
+  Amazon Home : 404
+  Arts, Crafts & Sewing : 162
+  Tools & Home Improvement : 29
+  Health & Personal Care : 148
+  Office Products : 117
+  Toys & Games : 518
+  Sports Collectibles : 6
+  Collectible Coins : 2
+  Industrial & Scientific : 30
+  None : 53
+  Baby : 106
+  Collectibles & Fine Art : 2
+  Cell Phones & Accessories : 16
+  Sports & Outdoors : 209
+  Grocery : 5
+  All Electronics : 61
+  Pet Supplies : 8
+  Musical Instruments : 5
+  Digital Music : 120
+  Movies & TV : 4
+  Computers : 90
+  Camera & Photo : 32
+  Home Audio & Theater : 26
+  Car Electronics : 8
+  GPS & Navigation : 2
+  Portable Audio & Accessories : 1
+  Handmade : 1
+  Automotive : 5
+  Video Games : 113
+  Software : 2
+  """
+  
+"""
+Prints the singular values from svd
+"""
+def print_singular_values(sigma):
+   for i in sigma:
+      print(i)
+   
 def test_func():
+  #get_categories(documentss)
   #  print(documentss[0][0])
   #  print(documentss[0][1])
   #  print(documentss[0][2])
@@ -214,7 +275,9 @@ def test_func():
   output for shape is (1191,234) -> 1191 docs, 234 words in vocab
   """
   #run SVD
-  docs_compressed, s, words_compressed = svds(td_matrix, k=40)
+  k = 10
+  docs_compressed, s, words_compressed = svds(td_matrix, k)
+  #print_singular_values(s)
   words_compressed = words_compressed.transpose()
   # print(docs_compressed.shape)
   # print(s.shape)
@@ -260,14 +323,18 @@ def test_func():
   for i, proj, sim in res:
     print("({}, {}, {:.4f}".format(i, proj, sim))
 
-  #itw2 = {i:t for t,i in word_to_index.items()}
+  itw2 = {i:t for t,i in word_to_index.items()}
 
-  # for i in range(40):
-  #   print("Top words in dimension", i)
-  #   dimension_col = words_compressed[:,i].squeeze()
-  #   asort = np.argsort(-dimension_col)
-  #   print([itw2[i] for i in asort[:10]])
-  #   print()
+  for i in range(10):
+    print("Top words in dimension", i)
+    dimension_col = words_compressed[:,i].squeeze()
+    asort = np.argsort(-dimension_col)
+    print([itw2[i] for i in asort[:10]])
+    print()
+
+"""
+Improve SVD by categorization
+"""
 
 """
 SVD -- Finish
