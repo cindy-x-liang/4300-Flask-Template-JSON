@@ -38,12 +38,28 @@ json_file_path = os.path.join(current_directory, 'results.json')
 #     link_df = pd.DataFrame(data['Product URL'])
 f = open(json_file_path)
 data = json.load(f)
+
 print("JSON succesfully loaded!")
 f.close()
 
 """
 Loading in data -- Finish
 """
+
+"""
+Making data with categories -- Start
+"""
+data_with_categories = {}
+for d in data:
+   if d["main_category"] in data_with_categories:
+      data_with_categories[d["main_category"]].append(d)
+   else:
+    data_with_categories[d["main_category"]]= [d]
+
+"""
+Making data with categories 
+"""
+
 
 app = Flask(__name__)
 CORS(app)
@@ -687,7 +703,7 @@ def filter_results_stars(results, doc_id_to_product):
 #doesn't properly print results to the website
 def json_search(query,age=None,gender=None,pricing=None,category=None):
     #first filter out products given age, gender, and pricing
-    filtered_data = filter(data,age,gender,pricing,category)
+    filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
 
     #print(len(filtered_data))
     #filtered_data = data
