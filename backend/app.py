@@ -28,7 +28,7 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 Loading in data -- Start
 """
 # Specify the path to the JSON file relative to the current script
-json_file_path = os.path.join(current_directory, 'results_categories.json')
+json_file_path = os.path.join(current_directory, 'results_categoris.json')
 
 # Assuming your JSON data is stored in a file named 'init.json'
 # with open(json_file_path, 'r') as file:
@@ -184,9 +184,23 @@ SVD -- Start
 """
 with open(json_file_path) as f_2:
     #only take docs whose description is more than 50 words
-    documentss = [(x['title'], x['main_category'], x['description'][0], x['price'])
-                 for x in json.load(f_2)
-                 if len(x['description'][0].split()) > 50]
+    # documentss = [(x['title'], x['main_category'], x['description'][0], x['price'])
+    #              for x in json.load(f_2)
+    #              if len(x['description'][0].split()) > 50]
+    documentss = []
+    for x in json.load(f_2):
+       to_add = ""
+       to_add += x['description'][0]
+       for feature in x['features']:
+          print(feature)
+          to_add += feature
+       documentss.append((x['title'], x['main_category'], to_add, x['price']))
+    print('len documents')
+    print(len(documentss))
+       
+    # ocumentss = [(x['title'], x['main_category'], x['description'][0], x['price'])
+    #              for x in json.load(f_2)
+    #              if len(x['description'][0].split()) > 50]
     
     
 
@@ -265,13 +279,16 @@ def print_singular_values(sigma):
    for i in sigma:
       print(i)
    
+from sklearn.feature_extraction import text
+
 def first_svd(query):
-  #get_categories(documentss)
-  #  print(documentss[0][0])
-  #  print(documentss[0][1])
-  #  print(documentss[0][2])
-  vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .7,
-                            min_df = 75)
+  get_categories(documentss)
+  print(documentss[0][0])
+  print(documentss[0][1])
+  print(documentss[0][2])
+  my_stop_words = text.ENGLISH_STOP_WORDS.union(["person","like"])
+  vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .95,
+                            min_df = 10)
   
   #print(vectorizer)
   #we're using the descriptions as our "documents"
@@ -555,7 +572,7 @@ import re
 splitter = re.compile(r"""
     [.!?]       # split on punctuation
     """, re.VERBOSE)
-query = "birthday gift for kids who like legos"
+#query = "birthday gift for kids who like legos"
 stemmer=PorterStemmer()
 word_regex = re.compile(r"""
     (\w+)
@@ -572,6 +589,8 @@ from nltk.corpus import stopwords
 stop_words = set(stopwords.words('english'))
 stop_words.add('gift') 
 stop_words.add('present') 
+stop_words.add('person') 
+stop_words.add('like') 
 
 """
 Functions for Stemming -- End
@@ -631,11 +650,11 @@ def filter(original_data,age = None,gender = None,pricing= None,category= None):
    filtered_data = []
    for item in original_data:
       item_price = item['price']
-      avg_rating = item['average_rating']
+      #avg_rating = item['average_rating']
       m_category = item['main_category']
       #print(price_to_int(item_price))
       #print(average_rating_to_int(avg_rating))
-      if (price_to_int(item_price) < int(pricing)) and (average_rating_to_int(avg_rating) > 2) and (m_category == category or category == "all") :
+      if (price_to_int(item_price) < int(pricing))  and (m_category == category or category == "all") :
          #print(price_to_int(item_price))
          filtered_data.append(item)
    #print(filtered_data)
@@ -683,17 +702,17 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
               for w in sent]
     
     #remove stop words from the query
-    final_query = []
-    for w in allstemms:
-        print(w)
-        if not (w in stop_words):
-            final_query.append(w)
+    # final_query = []
+    # for w in allstemms:
+    #     print(w)
+    #     if not (w in stop_words):
+    #         final_query.append(w)
 
-    query = ""
-    for w in final_query:
-       query = query + w + " "
+    # query = ""
+    # for w in final_query:
+    #    query = query + w + " "
     
-    print(type(filtered_data[0]['description'][0]))
+    #print(type(filtered_data[0]['description'][0]))
     for i in filtered_data:
         #print(i['description'][0])
         
@@ -783,10 +802,25 @@ def episodes_search():
     best_cat either equals "all" or the category thats determined by svd 
     changed by commenting out one or the other
     """
+    sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(text)]
+
+    allstemms=[w for sent in sent_words_lower_stemmed
+              for w in sent]
+              
+    final_query = []
+    for w in allstemms:
+        print(w)
+        if not (w in stop_words):
+            final_query.append(w)
+
+    query = ""
+    for w in final_query:
+       query = query + w + " "
+
     best_cat = first_svd(query)
     #best_cat = "all"
 
-    return json_search(text,pricing=pricing,category=best_cat)
+    return json_search(query,pricing=pricing,category=best_cat)
     #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:
