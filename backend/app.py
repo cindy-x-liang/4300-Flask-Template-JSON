@@ -765,6 +765,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
       for i in range(min(10,len(results))):          
         result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
           #print(doc_id_to_product[results[i][1]]['product_name'])
+      print('final result')
+      print(result_final)
+      if result_final ==[]:
+         print('here')
+         result_final = [{'name':'Query words are not in vocabluary, SVD failed', 'price':'','rating':'','descr':'','url':''}]
       return json.dumps(result_final)
     except:
        return json.dumps({"error" : "something went wrong"})
