@@ -783,7 +783,7 @@ def episodes_search():
     best_cat either equals "all" or the category thats determined by svd 
     changed by commenting out one or the other
     """
-    best_cat = first_svd("Skincare cleanser for girl with oily skin")
+    best_cat = first_svd(query)
     #best_cat = "all"
 
     return json_search(text,pricing=pricing,category=best_cat)
