@@ -123,6 +123,8 @@ def compute_doc_norms(index, idf, n_docs):
     for i in range(n_docs):
       if i in doc_sums:
         solution[i] = math.sqrt(doc_sums[i])
+    print("doc norms")
+    print(len(solution))
     return solution
 
 def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> dict:
@@ -164,9 +166,13 @@ def index_search(
         query_norm += (query_word_counts[word] * idf[word] )**2
     query_norm = math.sqrt(query_norm)
     solution = []
-    for score in scores:
-      cossim = scores[score]/(doc_norms[score] * query_norm)
-      solution.append((cossim,score))
+    #print(scores)
+    for item_id in list(scores.keys()):
+      #print(item_id)
+      denom = doc_norms[item_id-1] * query_norm
+      if denom != 0:
+        cossim = scores[item_id]/denom
+        solution.append((cossim,item_id))
     solution.sort(key=lambda x:x[0], reverse = True)
     return solution
 
@@ -178,7 +184,7 @@ SVD -- Start
 """
 with open(json_file_path) as f_2:
     #only take docs whose description is more than 50 words
-    documentss = [(x['title'], x['main_category'], x['description'][0])
+    documentss = [(x['title'], x['main_category'], x['description'][0], x['price'])
                  for x in json.load(f_2)
                  if len(x['description'][0].split()) > 50]
     
@@ -259,7 +265,7 @@ def print_singular_values(sigma):
    for i in sigma:
       print(i)
    
-def test_func(query):
+def first_svd(query):
   #get_categories(documentss)
   #  print(documentss[0][0])
   #  print(documentss[0][1])
@@ -397,8 +403,8 @@ def test_func(query):
 
     return most_freq_cat_str
   
-def improved_svd(query):
-  category = test_func(query)
+def improved_svd(query,pricing):
+  category = first_svd(query)
   # print("Category: " + category)
   #filter out documents by the chosen category
   new_documents = []
@@ -507,9 +513,19 @@ def improved_svd(query):
   docs_compressed_normed = normalize(docs_compressed)
 
   #number of res
-  k = 5
+  res = []
+  k = 6
   sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
   asort = np.argsort(-sims)[:k+1]
+
+  # index = 0
+  # while len(res) < 3 or index < len(asort):
+  #   i = asort[1:]
+  #   if new_documents[i][3] < pricing:
+  #      res.append((i, new_documents[i][0],new_documents[i][1],sims[i]))
+
+  #   index += 1
+     
   res = [(i, new_documents[i][0],new_documents[i][1],sims[i]) for i in asort[1:]]
 
   #most_freq_cat = {}
@@ -519,8 +535,8 @@ def improved_svd(query):
     #    most_freq_cat[cat] += 1
     # else:
     #    most_freq_cat[cat] = 1
-   
 
+   
 """
 Improve SVD by categorization
 """
@@ -611,14 +627,15 @@ def average_rating_to_int(average_rating):
       return 0
 
 #general filter function called to filter original data according to filters
-def filter(original_data,age = None,gender = None,pricing= None):
+def filter(original_data,age = None,gender = None,pricing= None,category= None):
    filtered_data = []
    for item in original_data:
       item_price = item['price']
       avg_rating = item['average_rating']
+      m_category = item['main_category']
       #print(price_to_int(item_price))
       #print(average_rating_to_int(avg_rating))
-      if (price_to_int(item_price) < int(pricing)) and (average_rating_to_int(avg_rating) > 2):
+      if (price_to_int(item_price) < int(pricing)) and (average_rating_to_int(avg_rating) > 2) and (m_category == category or category == "all") :
          #print(price_to_int(item_price))
          filtered_data.append(item)
    #print(filtered_data)
@@ -649,10 +666,11 @@ def filter_results_stars(results, doc_id_to_product):
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
-def json_search(query,age=None,gender=None,pricing=None):
+def json_search(query,age=None,gender=None,pricing=None,category=None):
     #first filter out products given age, gender, and pricing
-    filtered_data = filter(data,age,gender,pricing)
+    filtered_data = filter(data,age,gender,pricing,category)
 
+    #print(len(filtered_data))
     #filtered_data = data
     #run cosine similariity using query 
     dict_products = {}
@@ -742,7 +760,6 @@ Filters:
 @app.route("/episodes", methods = ['POST'])
 def episodes_search():
     #test_func("Skincare cleanser for girl with oily skin")
-    improved_svd("Skincare cleanser for girl with oily skin")
 
     request_data = request.json
     text = request_data["title"] #query -- ex. Star Wars Action Figure
@@ -760,7 +777,16 @@ def episodes_search():
 
     # print(text)
     # print(type(pricing))
-    return json_search(text,pricing=pricing)
+    #improved_svd("Cleanser for girl with oily skin",pricing)
+
+    """
+    best_cat either equals "all" or the category thats determined by svd 
+    changed by commenting out one or the other
+    """
+    best_cat = first_svd("Skincare cleanser for girl with oily skin")
+    #best_cat = "all"
+
+    return json_search(text,pricing=pricing,category=best_cat)
     #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:
