@@ -139,8 +139,8 @@ def compute_doc_norms(index, idf, n_docs):
     for i in range(n_docs):
       if i in doc_sums:
         solution[i] = math.sqrt(doc_sums[i])
-    # print("doc norms")
-    # print(len(solution))
+    print("doc norms")
+    print(len(solution))
     return solution
 
 def accumulate_dot_scores(query_word_counts: dict, index: dict, idf: dict) -> dict:
@@ -206,11 +206,11 @@ with open(json_file_path) as f_2:
     documentss = []
     for x in json.load(f_2):
        to_add = ""
-       to_add += x['description'][0]
+       for d in x['description']:
+          to_add += d
        for feature in x['features']:
-          print(feature)
           to_add += feature
-       documentss.append((x['title'], x['main_category'], to_add, x['price']))
+       documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print('len documents')
     print(len(documentss))
        
@@ -299,12 +299,12 @@ from sklearn.feature_extraction import text
 
 def first_svd(query):
   get_categories(documentss)
-  # print(documentss[0][0])
-  # print(documentss[0][1])
-  # print(documentss[0][2])
+  print(documentss[0][0])
+  print(documentss[0][1])
+  print(documentss[0][2])
   my_stop_words = text.ENGLISH_STOP_WORDS.union(["person","like"])
-  vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .95,
-                            min_df = 1)
+  vectorizer = TfidfVectorizer(stop_words = ["person", "like"], max_df = .95,
+                            min_df = 10)
   
   #print(vectorizer)
   #we're using the descriptions as our "documents"
@@ -405,39 +405,47 @@ def first_svd(query):
   k = 5
   sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
   asort = np.argsort(-sims)[:k+1]
-  res = [(i, documentss[i][0],documentss[i][1],sims[i]) for i in asort[1:]]
+  res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
 
   most_freq_cat = {}
-  for i, proj, cat ,sim in res:
+  result = []
+  for i, proj, cat ,descr,price,rating,url, sim in res:
+    #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
-    if cat in most_freq_cat:
-       most_freq_cat[cat] += 1
-    else:
-       most_freq_cat[cat] = 1
+    #this is to match the result of json_search
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
+    #result.append((sim,i))
+  return result
+  #   if cat in most_freq_cat:
+  #      most_freq_cat[cat] += 1
+  #   else:
+  #      most_freq_cat[cat] = 1
   
-  most_freq_cat_str = ""
-  max = 0
-  for i in list(most_freq_cat.keys()):
-     if most_freq_cat[i] > max:
-        max = most_freq_cat[i]
-        most_freq_cat_str = i
+  # most_freq_cat_str = ""
+  # max = 0
+  # for i in list(most_freq_cat.keys()):
+  #    if most_freq_cat[i] > max:
+  #       max = most_freq_cat[i]
+  #       most_freq_cat_str = i
      
-  print("most freq category: ")
-  print(most_freq_cat_str)
-  #next section displays the words that are expressed the most in latent dimensions
-  itw2 = {i:t for t,i in word_to_index.items()}
+  # print("most freq category: ")
+  # print(most_freq_cat_str)
+  # #next section displays the words that are expressed the most in latent dimensions
+  # itw2 = {i:t for t,i in word_to_index.items()}
 
-  for i in range(10):
-    print("Top words in dimension", i)
-    dimension_col = words_compressed[:,i].squeeze()
-    asort = np.argsort(-dimension_col)
-    print([itw2[i] for i in asort[:10]])
-    print()
+  # for i in range(10):
+  #   print("Top words in dimension", i)
+  #   dimension_col = words_compressed[:,i].squeeze()
+  #   asort = np.argsort(-dimension_col)
+  #   print([itw2[i] for i in asort[:10]])
+  #   print()
 
-    return most_freq_cat_str
+  #   return most_freq_cat_str
   
-def improved_svd(query,pricing):
-  category = first_svd(query)
+def improved_svd(query,category):
+  if category == None:
+     return []
+  #category = first_svd(query)
   # print("Category: " + category)
   #filter out documents by the chosen category
   new_documents = []
@@ -559,15 +567,19 @@ def improved_svd(query,pricing):
 
   #   index += 1
      
-  res = [(i, new_documents[i][0],new_documents[i][1],sims[i]) for i in asort[1:]]
+  res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
 
   #most_freq_cat = {}
-  for i, proj, cat ,sim in res:
+  result = []
+  for i, proj, cat ,descr,price,rating,url, sim in res:
+    #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
-    # if cat in most_freq_cat:
-    #    most_freq_cat[cat] += 1
-    # else:
-    #    most_freq_cat[cat] = 1
+    #this is to match the result of json_search
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
+    #result.append((sim,i))
+  return result
+
+
 
    
 """
@@ -581,8 +593,11 @@ SVD -- Finish
 """
 Functions for Query Filtering -- Start
 """
-from nltk.stem import PorterStemmer
+from nltk.stem import PorterStemmer, WordNetLemmatizer
 import re
+import nltk
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
 #The below is for stemming
 splitter = re.compile(r"""
@@ -590,11 +605,14 @@ splitter = re.compile(r"""
     """, re.VERBOSE)
 #query = "birthday gift for kids who like legos"
 stemmer=PorterStemmer()
+#wordnetlemmatizer inspired by https://stackoverflow.com/questions/24517722/how-to-stop-nltk-stemmer-from-removing-the-trailing-e
+wnl = WordNetLemmatizer()
 word_regex = re.compile(r"""
     (\w+)
     """, re.VERBOSE)
+
 def getstems(sent):
-    return [stemmer.stem(w.lower()) for w in word_regex.findall(sent)]
+    return [(wnl.lemmatize(w.lower()) if wnl.lemmatize(w.lower()).endswith('e') else stemmer.stem(w.lower())) for w in word_regex.findall(sent)]
 
 #these are for removing stop words
 import nltk
@@ -612,37 +630,6 @@ stop_words.add('like')
 Functions for Stemming -- End
 """
 
-"""
-FUNCTIONS FOR EMBEDDINGS -- BEGIN
-"""
-from gpt4all import Embed4All
-
-json_file_path_embeddings = os.path.join(current_directory, 'results_embeddings.json')
-f_embedd = open(json_file_path_embeddings)
-data_embeddings = json.load(f_embedd)
-embedder = Embed4All()
-
-def embeddings(query):
-  embedder = Embed4All()
-  output = embedder.embed(query)
-  similarity_scores = []
-
-  import numpy as np
-  from numpy.linalg import norm
- 
-  # compute cosine similarity
-  
-  B = np.array(output)
-  for d in data_embeddings:
-    A = np.array(data_embeddings[d])
-    cosine = np.dot(A,B)/(norm(A)*norm(B))
-    similarity_scores.append((cosine,d))
-  similarity_scores.sort(key=lambda x:x[0], reverse = True)
-  return similarity_scores
-
-"""
-FUNCTIONS FOR EMBEDDINGS -- END
-"""
 
 
 """
@@ -733,112 +720,67 @@ def filter_results_stars(results, doc_id_to_product):
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
 def json_search(query,age=None,gender=None,pricing=None,category=None):
+    #first filter out products given age, gender, and pricing
+    if category == None:
+       filtered_data = data
+    else:
+      filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
+
+    #print(len(filtered_data))
+    #filtered_data = data
+    #run cosine similariity using query 
+    dict_products = {}
+    count = 1
     
     
-    results = embeddings(query)
+    #print(type(filtered_data[0]['description'][0]))
+    for i in filtered_data:
+        #print(i['description'][0])
+        
+        #?
+        curr_product = []
+        for feature in i['features']:
+           curr_product += tokenize(feature)
+        dict_products[count] = curr_product+ tokenize(i['description'])
+        count+=1
+
+    #dict_products[1]
+    
+    inv_indx = build_inverted_index(dict_products)
+    idf = compute_idf(inv_indx, len(filtered_data)) 
+
+    #inverted index for good words only 
+    inv_idx = {key: val for key, val in inv_indx.items()
+            if key in idf} 
+    doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
+
+    #runs cosine similarity
+    results = index_search(query, inv_idx, idf, doc_norms)
     #print(results)
 
     doc_id_to_product = {}
     count = 1
-    json_file_path = os.path.join(current_directory, 'results.json')
-
-    # Assuming your JSON data is stored in a file named 'init.json'
-    # with open(json_file_path, 'r') as file:
-    #     data = json.load(file)
-    #     product_df = pd.DataFrame(data['Product Name'])
-    #     description_df = pd.DataFrame(data['Product Description'])
-    #     link_df = pd.DataFrame(data['Product URL'])
-    # f = open(json_file_path)
-    # data = json.load(f)
-    hi = True
-    for i in data:
-        if hi:
-           print(i)
-           print(i['parent_asin'])
-           hi = False
-        doc_id_to_product[i['parent_asin']] = i
-  
-    print(doc_id_to_product['B000UX8IWY']['title'])
-    result_final = []
-    for i in range(min(10,len(results))):     
-      print(doc_id_to_product[results[i][1]]['title']) 
-      print(i)    
-      result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
-    print('final result')
-    if result_final ==[]:
-      result_final = [{'name':'Query words are not in vocabluary, SVD failed', 'price':'','rating':'','descr':'','url':''}]
-    return json.dumps(result_final)
-    #first filter out products given age, gender, and pricing
-    # filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
-
-    # #print(len(filtered_data))
-    # #filtered_data = data
-    # #run cosine similariity using query 
-    # dict_products = {}
-    # count = 1
-
-    # #Perform stemming on the query
-    # sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(query)]
-
-    # allstemms=[w for sent in sent_words_lower_stemmed
-    #           for w in sent]
-    
-    # #remove stop words from the query
-    # # final_query = []
-    # # for w in allstemms:
-    # #     print(w)
-    # #     if not (w in stop_words):
-    # #         final_query.append(w)
-
-    # # query = ""
-    # # for w in final_query:
-    # #    query = query + w + " "
-    
-    # #print(type(filtered_data[0]['description'][0]))
-    # for i in filtered_data:
-    #     #print(i['description'][0])
-        
-    #     #?
-    #     curr_product = []
-    #     for feature in i['features']:
-    #        curr_product += tokenize(feature)
-    #     dict_products[count] = curr_product+ tokenize(i['description'])
-    #     count+=1
-
-    # #dict_products[1]
-    
-    # inv_indx = build_inverted_index(dict_products)
-    # idf = compute_idf(inv_indx, len(filtered_data)) 
-
-    # #inverted index for good words only 
-    # inv_idx = {key: val for key, val in inv_indx.items()
-    #         if key in idf} 
-    # doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
-
-    # #runs cosine similarity
-    # results = index_search(query, inv_idx, idf, doc_norms)
-    # #print(results)
-
-    # doc_id_to_product = {}
-    # count = 1
-    # for i in filtered_data:
-    #     doc_id_to_product[count] = i
-    #     count+=1
-    # result_final= []
-    # results = filter_results_stars(results,doc_id_to_product)
-
-    # try:
-    #   for i in range(min(10,len(results))):          
-    #     result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
-    #       #print(doc_id_to_product[results[i][1]]['product_name'])
-    #   print('final result')
-    #   print(result_final)
-    #   if result_final ==[]:
-    #      print('here')
-    #      result_final = [{'name':'Query words are not in vocabluary, SVD failed', 'price':'','rating':'','descr':'','url':''}]
-    #   return json.dumps(result_final)
-    # except:
-    #    return json.dumps({"error" : "something went wrong"})
+    for i in filtered_data:
+        doc_id_to_product[count] = i
+        count+=1
+    result_final= []
+    results = filter_results_stars(results,doc_id_to_product)
+    if category == None:
+       results_svd = first_svd(query)
+    else:
+      results_svd = improved_svd(query,category)
+    results = results[:10] 
+    try:
+      for i in range(min(16,len(results))):          
+        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+        # print(doc_id_to_product[results[i][1]]['title'])
+        # print(results[i])
+      result_final = result_final + results_svd
+      print(result_final)
+      print('here')
+      return json.dumps(result_final)
+    except:
+       return json.dumps({"error" : "something went wrong"})
 
     # try:
     #   for i in range(10):
@@ -889,25 +831,25 @@ def episodes_search():
     best_cat either equals "all" or the category thats determined by svd 
     changed by commenting out one or the other
     """
-    # sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(text)]
+    sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(text)]
 
-    # allstemms=[w for sent in sent_words_lower_stemmed
-    #           for w in sent]
+    allstemms=[w for sent in sent_words_lower_stemmed
+              for w in sent]
               
-    # final_query = []
-    # for w in allstemms:
-    #     print(w)
-    #     if not (w in stop_words):
-    #         final_query.append(w)
+    final_query = []
+    for w in allstemms:
+        print(w)
+        if not (w in stop_words):
+            final_query.append(w)
 
-    # query = ""
-    # for w in final_query:
-    #    query = query + w + " "
+    query = ""
+    for w in final_query:
+       query = query + w + " "
 
-    # best_cat = first_svd(query)
-    #best_cat = "all"
-
-    return json_search(text,pricing=pricing,category=None)
+  
+    #TODO: this field should be an input from the UI, it is ok to be None
+    best_cat = "Books"
+    return json_search(query,pricing=pricing,category=None)
     #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:
