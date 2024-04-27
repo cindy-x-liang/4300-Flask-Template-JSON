@@ -4,41 +4,42 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap"
-    rel="stylesheet">
+        rel="stylesheet">
 
 <body>
-    <div class="full-body-container">
-        <div class="top-text">
-            <div class="google-colors">
-                <!-- <h1 id="google-4">The</h1> -->
-                <h1 id="google-3">The Givers</h1>
-                <!-- <h1 id="google-0-1">0</h1>
-                <h1 id="google-0-2">0</h1> -->
-            </div>
-            <!-- <div class="input-box" onclick="sendFocus()">
-                <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val"
-                    onkeyup="filterText()"> -->
-        </div>
-        <div>
-            <form id="form">
-                <div class="input-box" onclick="sendFocus()">
-                    <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input placeholder="Enter a description of the person you're buying a gift for"
-                        id="filter-text-val">
-                </div>
-                <label for="price">Price:</label>
-                <input type="text" id="price" name="price" required>
-                <button type="submit">Submit</button>
-            </form>
-        </div>
+        <div class="full-body-container">
+                <div class="top-text">
+                        <div class="google-colors">
+                                <!-- <h1 id="google-4">The</h1> -->
+                                <h1 id="google-3">The Givers</h1>
+                                <!-- <h1 id="google-0-1">0</h1>
+                <h1 id="google-0-2">0</h1> -->
+                            </div>
+                        <!-- <div class="input-box" onclick="sendFocus()">
+                <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val"
+                    onkeyup="filterText()"> -->
+                    </div>
+                <div>
+                        <form id="form">
+                                <div class="input-box" onclick="sendFocus()">
+                                        <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                                        <input placeholder="Enter a description of the person you're buying a gift for"
+                                                id="filter-text-val">
+                                    </div>
+                                <label for="price">Price:</label>
+                                <input type="text" id="price" name="price" required>
+                                <button type="submit">Submit</button>
+                            </form>
+                    </div>
 
-    </div>
-    <div id="answer-box">
+            </div>
+        <div id="answer-box">
 
-    </div>
-    </div>
+            </div>
+        </div>
 
+        
     <script>
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
@@ -64,26 +65,69 @@
                 })
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
-                    tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating)
+                    let image_url = "https://m.media-amazon.com/images/I/51iCK1FjFkL._SL1200_.jpg";
+                    let url = "N/A"
+                    if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
+                        image_url = row.images.hi_res[0];
+                    }
+                    if (row.url) {
+                        url = row.url
+                    }
+
+                    tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
+
                     document.getElementById("answer-box").appendChild(tempDiv)
                 }))
                 .catch(error => {
                     console.error('There has been a problem with your fetch operation:', error);
                 });
         })
+        let notHelpfulTitles = {}
 
-        function answerBoxTemplate(title, titleDesc, link, price, rating) {
-            return `<div class=''>
-                <h3 class='episode-title'>${title}</h3>
-                <p class='episode-desc'>${titleDesc}</p>
-                <p class='episode-desc'>Star rating: ${rating}</p>
-                <p class='episode-desc'>Price: $${price}</p>
-                <p class='episode-rating'>Link to purchase: ${link}</p>
-            </div>`
+        function handleNotHelpful(title, query) {
+            let updated = false;
+            if (notHelpfulTitles.hasOwnProperty(query)) {
+                if (!notHelpfulTitles[query].includes(title)) {
+                    notHelpfulTitles[query].push(title);
+                    updated = true;
+                }
+            } else {
+                notHelpfulTitles[query] = [title];
+                updated = true;
+            }
+            if (updated) {
+                sendNotHelpful()
+            }
+        }
+        function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query) {
+            return `<div class='answer-container'>
+                <h3 class='episode-title'>${title}</h3>
+                <p class='episode-desc'>${titleDesc}</p>
+                <p class='episode-desc'>Star rating: ${rating}</p>
+                <p class='episode-desc'>Price: $${price}</p>
+                <p class='episode-rating'>Link: </p>
+                <a href='${link}'>${link}</a>
+
+                <img src='image_url'>
+                <button type="button" onclick="handleNotHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
+
+            </div>`
         }
 
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
+        }
+        function sendNotHelpful() {
+            fetch("/not-helpful", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(notHelpfulTitles)
+            })
+                .then(response => response.json())
+                .then(data => console.log("Response from server:", data))
+                .catch(error => console.error('Error sending not helpful titles:', error));
         }
 
         function filterText() {
