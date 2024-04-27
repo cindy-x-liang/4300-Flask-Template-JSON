@@ -4,42 +4,42 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap"
-        rel="stylesheet">
+    rel="stylesheet">
 
 <body>
-        <div class="full-body-container">
-                <div class="top-text">
-                        <div class="google-colors">
-                                <!-- <h1 id="google-4">The</h1> -->
-                                <h1 id="google-3">The Givers</h1>
-                                <!-- <h1 id="google-0-1">0</h1>
+    <div class="full-body-container">
+        <div class="top-text">
+            <div class="google-colors">
+                <!-- <h1 id="google-4">The</h1> -->
+                <h1 id="google-3">The Givers</h1>
+                <!-- <h1 id="google-0-1">0</h1>
                 <h1 id="google-0-2">0</h1> -->
-                            </div>
-                        <!-- <div class="input-box" onclick="sendFocus()">
+            </div>
+            <!-- <div class="input-box" onclick="sendFocus()">
                 <img src="{{ url_for('static', filename='images/mag.png') }}" />
                 <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val"
                     onkeyup="filterText()"> -->
-                    </div>
-                <div>
-                        <form id="form">
-                                <div class="input-box" onclick="sendFocus()">
-                                        <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                                        <input placeholder="Enter a description of the person you're buying a gift for"
-                                                id="filter-text-val">
-                                    </div>
-                                <label for="price">Price:</label>
-                                <input type="text" id="price" name="price" required>
-                                <button type="submit">Submit</button>
-                            </form>
-                    </div>
+        </div>
+        <div>
+            <form id="form">
+                <div class="input-box" onclick="sendFocus()">
+                    <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                    <input placeholder="Enter a description of the person you're buying a gift for"
+                        id="filter-text-val">
+                </div>
+                <label for="price">Price:</label>
+                <input type="text" id="price" name="price" required>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
 
-            </div>
-        <div id="answer-box">
+    </div>
+    <div id="answer-box">
 
-            </div>
-        </div>
+    </div>
+    </div>
 
-        
+
     <script>
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
@@ -101,17 +101,17 @@
         }
         function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query) {
             return `<div class='answer-container'>
-                <h3 class='episode-title'>${title}</h3>
-                <p class='episode-desc'>${titleDesc}</p>
-                <p class='episode-desc'>Star rating: ${rating}</p>
-                <p class='episode-desc'>Price: $${price}</p>
-                <p class='episode-rating'>Link: </p>
-                <a href='${link}'>${link}</a>
+<h3 class='episode-title'>${title}</h3>
+<p class='episode-desc'>${titleDesc}</p>
+<p class='episode-desc'>Star rating: ${rating}</p>
+<p class='episode-desc'>Price: $${price}</p>
+<p class='episode-rating'>Link: </p>
+<a href='${link}'>${link}</a>
 
-                <img src='image_url'>
-                <button type="button" onclick="handleNotHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
+<img src='image_url'>
+<button type="button" onclick="handleNotHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
 
-            </div>`
+</div>`
         }
 
         function sendFocus() {
