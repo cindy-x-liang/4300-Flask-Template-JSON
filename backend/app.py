@@ -196,6 +196,10 @@ def index_search(
 Cosine Similarity Calculation Functions -- Finish
 """
 """
+SVD GLobal Variabie for explainability
+"""
+explain_vec = []
+"""
 SVD -- Start
 """
 with open(json_file_path) as f_2:
@@ -394,6 +398,19 @@ def first_svd(query):
   higher magnitude values ex. 0.5 vs 0.9 mean that it has more of an influence
   """
   query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
+  explain_vec = query_vec
+
+  """
+  Get the explainability
+  --get the abs value for each 
+  """
+  explain_dic = {} 
+  explain_dic["Dimension 1"] = abs(query_vec[0])
+  explain_dic["Dimension 2"] = abs(query_vec[1])
+  explain_dic["Dimension 3"] = abs(query_vec[2])
+  explain_dic["Dimension 4"] = abs(query_vec[3])
+  explain_dic["Dimension 5"] = abs(query_vec[4]) 
+  
   #query vec 
   print("query_vec")
   print(query_vec)
@@ -407,6 +424,47 @@ def first_svd(query):
   asort = np.argsort(-sims)[:k+1]
   res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
 
+  #try to see what the top words are in each dimension to give each dimension a label
+  itw2 = {i:t for t,i in word_to_index.items()}
+
+  for i in range(10):
+      print("Top words in dimension", i)
+      dimension_col = words_compressed[:,i].squeeze()
+      asort = np.argsort(-dimension_col)
+      print([itw2[i] for i in asort[:30]])
+      print()
+
+  """
+  Dimension 0: Toys for kids/home appliances
+  Dimension 1: Pets
+  Dimension 2: ?
+  Dimension 3: Fashion/Clothing
+  Dimension 4: Electric Appliances
+  Dimension 5: ?
+  Dimension 6: Beauty
+  Dimension 7: Mobile devices
+  Dimension 8: Mobile Devices
+  Dimension 9: Details/Measurements
+
+  Major cats are:
+  All Beauty
+  Amazon Fashion
+  Amazon Home
+  Arts/Crafts
+  Pets
+  Industrial/Scientific
+  Office Products 
+  Tools & Home Improvement
+  Health/Personal Care
+  Toys/Games + Baby
+  Cell Phones
+  Musical Instruments
+  Books
+  Digital Music
+  Video Games
+  """
+
+  
   most_freq_cat = {}
   result = []
   for i, proj, cat ,descr,price,rating,url, sim in res:
@@ -415,7 +473,7 @@ def first_svd(query):
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
     #result.append((sim,i))
-  return result
+  return (explain_vec,result)
   #   if cat in most_freq_cat:
   #      most_freq_cat[cat] += 1
   #   else:
@@ -433,12 +491,7 @@ def first_svd(query):
   # #next section displays the words that are expressed the most in latent dimensions
   # itw2 = {i:t for t,i in word_to_index.items()}
 
-  # for i in range(10):
-  #   print("Top words in dimension", i)
-  #   dimension_col = words_compressed[:,i].squeeze()
-  #   asort = np.argsort(-dimension_col)
-  #   print([itw2[i] for i in asort[:10]])
-  #   print()
+  
 
   #   return most_freq_cat_str
   
@@ -546,6 +599,18 @@ def improved_svd(query,category):
   higher magnitude values ex. 0.5 vs 0.9 mean that it has more of an influence
   """
   query_vec = normalize(np.dot(query_tfidf, words_compressed)).squeeze()
+  explain_vec = query_vec
+
+  """
+  Get the explainability
+  --get the abs value for each 
+  """
+  explain_dic = {} 
+  explain_dic["Dimension 1"] = abs(query_vec[0])
+  explain_dic["Dimension 2"] = abs(query_vec[1])
+  explain_dic["Dimension 3"] = abs(query_vec[2])
+  explain_dic["Dimension 4"] = abs(query_vec[3])
+  explain_dic["Dimension 5"] = abs(query_vec[4]) 
   #query vec 
   print("query_vec")
   print(query_vec)
@@ -577,7 +642,7 @@ def improved_svd(query,category):
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
     #result.append((sim,i))
-  return result
+  return (explain_vec,result)
 
 
 
@@ -635,6 +700,7 @@ Functions for Stemming -- End
 """
 Helper Functions -- Start
 """
+
 #this function takes in an integer and returns a category
 def get_age_category(age):
    if age > 0 and age < 13:
@@ -766,10 +832,15 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
     result_final= []
     results = filter_results_stars(results,doc_id_to_product)
     if category == None:
-       results_svd = first_svd(query)
+       print("first_svd taken")
+       svd_out = first_svd(query)
+       results_svd = svd_out[1]
+
     else:
-      results_svd = improved_svd(query,category)
+      svd_out = improved_svd(query,category)
+      results_svd = svd_out[1]
     results = results[:10] 
+    query_vec = svd_out[0]
     try:
       for i in range(min(16,len(results))):          
         result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
@@ -804,11 +875,6 @@ Filters:
 -gender
 -pricing
 """
-
-@app.route("/not-helpful", methods=['POST'])
-def receive_not_helpful():
-    data = request.get_json()
-    return jsonify({"status": "success", "message": "Data received"})
 
 @app.route("/episodes", methods = ['POST'])
 def episodes_search():

@@ -61,6 +61,7 @@
                     if (!response.ok) {
                         throw new Error("Failed")
                     }
+                    // put display the explainability metric here?
                     return response.json();
                 })
                 .then((data) => data.forEach(row => {
@@ -141,6 +142,10 @@
                     document.getElementById("answer-box").appendChild(tempDiv)
                 }));
 
+        }
+
+        function getExplainability() {
+            
         }
 
     </script>
