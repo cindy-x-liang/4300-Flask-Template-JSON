@@ -13,7 +13,7 @@ import math
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import normalize
 from scipy.sparse.linalg import svds
-
+import scipy.sparse as sp
 
 
 #test

@@ -119,6 +119,7 @@ button:focus {
 }
 
 #answer-box {
+    margin-top: 10px;
     display: flex;
     width: 700px;
     flex-direction: column;
@@ -134,3 +135,36 @@ button:focus {
 .episode-desc {
     font-family: 'Montserrat', sans-serif;
 } */
+
+.answer-container {
+    margin-top: 30px;
+
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+.episode-title {
+    font-size: 18px;
+    margin: 0;
+}
+
+.episode-desc {
+    margin-top: 5px;
+}
+
+.episode-rating {
+    font-weight: bold;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+}
