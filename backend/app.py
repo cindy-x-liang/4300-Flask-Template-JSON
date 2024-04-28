@@ -473,7 +473,7 @@ def first_svd(query):
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
     #result.append((sim,i))
-  return (explain_vec,result)
+  return (explain_dic,result)
   #   if cat in most_freq_cat:
   #      most_freq_cat[cat] += 1
   #   else:
@@ -642,7 +642,7 @@ def improved_svd(query,category):
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
     #result.append((sim,i))
-  return (explain_vec,result)
+  return (explain_dic,result)
 
 
 
@@ -847,10 +847,21 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
       result_final = result_final + results_svd
-      print(result_final)
-      print('here')
-      return json.dumps(result_final)
+      # print(result_final)
+      # print('here')
+      # print(type(query_vec))
+      display = {"explain" : (query_vec), "dis" : result_final}
+      # print(display)
+      # print("before json dumps")
+      # temp = json.dumps(display)
+      # print("after json dumps")
+      # print(temp)
+      # print("reached final after temp")
+      return json.dumps(display)
+      # return json.dumps(result_final)
+      
     except:
+      #  print("errored oops")
        return json.dumps({"error" : "something went wrong"})
 
     # try:

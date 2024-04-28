@@ -62,9 +62,16 @@
                         throw new Error("Failed")
                     }
                     // put display the explainability metric here?
+                    console.log("hello reached here")
                     return response.json();
                 })
-                .then((data) => data.forEach(row => {
+                .then((res) => {
+                    console.log("reached the other then statement")
+                    console.log("res: " , res)
+                    let dis = res["dis"]
+                    console.log("dis", dis)
+                    console.log("reached after trying to reference dis")
+                    dis.forEach(row => {
                     let tempDiv = document.createElement("div")
                     let image_url = "https://m.media-amazon.com/images/I/51iCK1FjFkL._SL1200_.jpg";
                     let url = "N/A"
@@ -78,7 +85,8 @@
                     tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
 
                     document.getElementById("answer-box").appendChild(tempDiv)
-                }))
+                
+                })})
                 .catch(error => {
                     console.error('There has been a problem with your fetch operation:', error);
                 });
@@ -145,7 +153,7 @@
         }
 
         function getExplainability() {
-            
+
         }
 
     </script>
