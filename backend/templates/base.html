@@ -29,6 +29,12 @@
                 </div>
                 <label for="price">Price:</label>
                 <input type="text" id="price" name="price" required>
+
+                <label for="categories">Category</label>
+                <select name="categories" id="categories">
+                    <option value="anything">Anything</option>
+                </select>
+
                 <button type="submit">Submit</button>
             </form>
         </div>
@@ -44,8 +50,13 @@
 
 
     <script>
+        window.onload = function () {
+            fetchCategories();
+        };
+
         let helpfulTitles = [];
         var price;
+        var category;
 
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
@@ -53,9 +64,11 @@
             loading(true);
             var description = document.getElementById('filter-text-val').value;
             price = Number(document.getElementById('price').value);
+            category = document.getElementById('categories').value;
             var data = {
                 "title": description,
-                "pricing": price
+                "pricing": price,
+                "category": category
             };
             document.getElementById("answer-box").innerHTML = ""
             fetch("/episodes", {
@@ -101,6 +114,24 @@
                     console.error('There has been a problem with your fetch operation:', error);
                 });
         })
+        function fetchCategories() {
+            fetch('/categories')
+                .then(response => response.json())
+                .then(categories => {
+                    const selectElement = document.getElementById('categories');
+                    selectElement.innerHTML = '';
+
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        selectElement.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching categories:', error);
+                });
+        }
 
         function handleHelpful(title, query) {
             let updated = false;
@@ -172,7 +203,8 @@
                 .then((updatedQuery) => {
                     var data = {
                         "title": updatedQuery['updated_query'],
-                        "pricing": price
+                        "pricing": price,
+                        "category": category
                     }
                     fetch("/episodes", {
                         method: 'POST',

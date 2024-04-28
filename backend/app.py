@@ -16,6 +16,7 @@ from scipy.sparse.linalg import svds
 import scipy.sparse as sp
 
 
+
 #test
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -253,8 +254,11 @@ def get_categories(data):
     else:
        d1[curr_category] = 1
 
-  for i in list(d1.keys()):
+  categories = list((d1.keys()))
+  for i in categories:
      print(str(i) + " : " + str(d1[i]))
+  
+  return categories
 
   """
   This are the main categories of our dataset:
@@ -302,7 +306,7 @@ def print_singular_values(sigma):
 from sklearn.feature_extraction import text
 
 def first_svd(query):
-  get_categories(documentss)
+  throwaway = get_categories(documentss)
   print(documentss[0][0])
   print(documentss[0][1])
   print(documentss[0][2])
@@ -963,7 +967,7 @@ def receive_not_helpful():
   query = ""
   for w in final_query:
     query = query + w + " "
-  
+  print(data_with_categories)
   updated_query = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
   return jsonify(updated_query=updated_query)
 
@@ -987,6 +991,11 @@ Filters:
 -gender
 -pricing
 """
+
+@app.route("/categories", methods=['GET'])
+def categories_return():
+   cats = get_categories(documentss)
+   return jsonify(cats)
 
 @app.route("/episodes", methods = ['POST'])
 def episodes_search():
@@ -1031,9 +1040,10 @@ def episodes_search():
 
   
     #TODO: this field should be an input from the UI, it is ok to be None
-    best_cat = "Books"
-    print(type(json_search(query,pricing=pricing,category=None)))
-    return json_search(query,pricing=pricing,category=None)
+    category = request_data["category"]
+    if category == "Anything":
+       category = None
+    return json_search(query,pricing=pricing,category=category)
     #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:
