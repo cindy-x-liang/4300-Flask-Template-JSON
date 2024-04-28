@@ -82,7 +82,7 @@ Cosine Similarity Calculation Functions -- Start
 """
 def tokenize(text: str) -> List[str]:
     if text:
-      text = text[0].lower()
+      text = text.lower()
       return re.findall(r'[a-z]+', text)
     else:
        return ""
@@ -818,7 +818,9 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
         curr_product = []
         for feature in i['features']:
            curr_product += tokenize(feature)
-        dict_products[count] = curr_product+ tokenize(i['description'])
+        for description in i['description']:
+           curr_product += tokenize(description)
+        dict_products[count] = curr_product #+ tokenize(i['description'])
         count+=1
 
     #dict_products[1]
@@ -1061,11 +1063,16 @@ def episodes_search():
     best_cat either equals "all" or the category thats determined by svd 
     changed by commenting out one or the other
     """
+    old_query = tokenize(text)
     sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(text)]
 
     allstemms=[w for sent in sent_words_lower_stemmed
               for w in sent]
               
+    allstemms+=old_query
+    print(old_query)
+    print(splitter.split(text))
+    print(allstemms)
     final_query = []
     for w in allstemms:
         print(w)
