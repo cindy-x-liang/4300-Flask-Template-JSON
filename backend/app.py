@@ -13,7 +13,6 @@ import math
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import normalize
 from scipy.sparse.linalg import svds
-import scipy.sparse as sp
 
 
 
@@ -211,11 +210,11 @@ with open(json_file_path) as f_2:
     documentss = []
     for x in json.load(f_2):
        to_add = ""
-       to_add += x['description'][0]
+       for d in x['description']:
+          to_add += d
        for feature in x['features']:
-          print(feature)
           to_add += feature
-       documentss.append((x['title'], x['main_category'], to_add, x['price']))
+       documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print('len documents')
     print(len(documentss))
        
@@ -308,7 +307,7 @@ def first_svd(query):
   print(documentss[0][1])
   print(documentss[0][2])
   my_stop_words = text.ENGLISH_STOP_WORDS.union(["person","like"])
-  vectorizer = TfidfVectorizer(stop_words = 'english', max_df = .95,
+  vectorizer = TfidfVectorizer(stop_words = ["person", "like"], max_df = .95,
                             min_df = 10)
   
   #print(vectorizer)
@@ -467,7 +466,9 @@ def first_svd(query):
 
   
   most_freq_cat = {}
-  for i, proj, cat ,sim in res:
+  result = []
+  for i, proj, cat ,descr,price,rating,url, sim in res:
+    #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
@@ -478,24 +479,26 @@ def first_svd(query):
   #   else:
   #      most_freq_cat[cat] = 1
   
-  most_freq_cat_str = ""
-  max = 0
-  for i in list(most_freq_cat.keys()):
-     if most_freq_cat[i] > max:
-        max = most_freq_cat[i]
-        most_freq_cat_str = i
+  # most_freq_cat_str = ""
+  # max = 0
+  # for i in list(most_freq_cat.keys()):
+  #    if most_freq_cat[i] > max:
+  #       max = most_freq_cat[i]
+  #       most_freq_cat_str = i
      
-  print("most freq category: ")
-  print(most_freq_cat_str)
-  #next section displays the words that are expressed the most in latent dimensions
-  itw2 = {i:t for t,i in word_to_index.items()}
+  # print("most freq category: ")
+  # print(most_freq_cat_str)
+  # #next section displays the words that are expressed the most in latent dimensions
+  # itw2 = {i:t for t,i in word_to_index.items()}
 
   
 
-    return most_freq_cat_str
+  #   return most_freq_cat_str
   
-def improved_svd(query,pricing):
-  category = first_svd(query)
+def improved_svd(query,category):
+  if category == None:
+     return []
+  #category = first_svd(query)
   # print("Category: " + category)
   #filter out documents by the chosen category
   new_documents = []
@@ -629,10 +632,12 @@ def improved_svd(query,pricing):
 
   #   index += 1
      
-  res = [(i, new_documents[i][0],new_documents[i][1],sims[i]) for i in asort[1:]]
+  res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
 
   #most_freq_cat = {}
-  for i, proj, cat ,sim in res:
+  result = []
+  for i, proj, cat ,descr,price,rating,url, sim in res:
+    #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
@@ -653,8 +658,11 @@ SVD -- Finish
 """
 Functions for Query Filtering -- Start
 """
-from nltk.stem import PorterStemmer
+from nltk.stem import PorterStemmer, WordNetLemmatizer
 import re
+import nltk
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
 #The below is for stemming
 splitter = re.compile(r"""
@@ -662,11 +670,14 @@ splitter = re.compile(r"""
     """, re.VERBOSE)
 #query = "birthday gift for kids who like legos"
 stemmer=PorterStemmer()
+#wordnetlemmatizer inspired by https://stackoverflow.com/questions/24517722/how-to-stop-nltk-stemmer-from-removing-the-trailing-e
+wnl = WordNetLemmatizer()
 word_regex = re.compile(r"""
     (\w+)
     """, re.VERBOSE)
+
 def getstems(sent):
-    return [stemmer.stem(w.lower()) for w in word_regex.findall(sent)]
+    return [(wnl.lemmatize(w.lower()) if wnl.lemmatize(w.lower()).endswith('e') else stemmer.stem(w.lower())) for w in word_regex.findall(sent)]
 
 #these are for removing stop words
 import nltk
@@ -776,30 +787,17 @@ def filter_results_stars(results, doc_id_to_product):
 #doesn't properly print results to the website
 def json_search(query,age=None,gender=None,pricing=None,category=None):
     #first filter out products given age, gender, and pricing
-    filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
+    if category == None:
+       filtered_data = data
+    else:
+      filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
 
     #print(len(filtered_data))
     #filtered_data = data
     #run cosine similariity using query 
     dict_products = {}
     count = 1
-
-    #Perform stemming on the query
-    sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(query)]
-
-    allstemms=[w for sent in sent_words_lower_stemmed
-              for w in sent]
     
-    #remove stop words from the query
-    # final_query = []
-    # for w in allstemms:
-    #     print(w)
-    #     if not (w in stop_words):
-    #         final_query.append(w)
-
-    # query = ""
-    # for w in final_query:
-    #    query = query + w + " "
     
     #print(type(filtered_data[0]['description'][0]))
     for i in filtered_data:
@@ -844,7 +842,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
     results = results[:10] 
     query_vec = svd_out[0]
     try:
-      for i in range(min(10,len(results))):          
+      for i in range(min(16,len(results))):          
         result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
@@ -874,53 +872,13 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
 
     # except:
     #    return json.dumps({"error" : "not enough products"})
-
-
-
-#Functions for Rocchio -- Start
-
-@app.route("/not-helpful", methods=['POST'])
-def receive_not_helpful():
-  #titles
-  #query
-  #pricing
-  data = request.json
-  irrelevant_docs = data["titles"]
-  initial_query = data["query"]
-  price = data["pricing"]
-
-  sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(initial_query)]
-
-  allstemms=[w for sent in sent_words_lower_stemmed
-              for w in sent]
-              
-  final_query = []
-  for w in allstemms:
-    print(w)
-    if not (w in stop_words):
-      final_query.append(w)
-
-  query = ""
-  for w in final_query:
-    query = query + w + " "
-  
-  updated_query = rocchio_relevance_feedback(query, [], irrelevant_docs=irrelevant_docs)
-  return jsonify(updated_query=updated_query)
-
-
-
-  # updated_cat = first_svd(updated_query)
-
-  # return json_search(updated_query, pricing=price, category=updated_cat)
-
-#this is the function that gets list of irrelevant documents for the query
-# def get_irrelevant_docs(map, query):
-#    return map[query]
-
+"""
+Helper Functions -- Finish
+"""   
 def rocchio_relevance_feedback(query, relevant_docs, irrelevant_docs):
-  alpha = 0.3
-  beta = 0.3
-  gamma = 0.8
+  alpha = 0.4
+  beta = 0.6
+  gamma = 0.2
   vectorizer = TfidfVectorizer()  
 
   all_docs = [query] + relevant_docs + irrelevant_docs
@@ -978,7 +936,47 @@ def rocchio_relevance_feedback(query, relevant_docs, irrelevant_docs):
   return updated_query
 
 #Helper Functions -- Finish  
-    
+
+#Functions for Rocchio -- Start
+
+@app.route("/not-helpful", methods=['POST'])
+def receive_not_helpful():
+  #titles
+  #query
+  #pricing
+  data = request.json
+  relevant_docs = data["titles"]
+  initial_query = data["query"]
+  price = data["pricing"]
+
+  sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(initial_query)]
+
+  allstemms=[w for sent in sent_words_lower_stemmed
+              for w in sent]
+              
+  final_query = []
+  for w in allstemms:
+    print(w)
+    if not (w in stop_words):
+      final_query.append(w)
+
+  query = ""
+  for w in final_query:
+    query = query + w + " "
+  
+  updated_query = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
+  return jsonify(updated_query=updated_query)
+
+
+
+  # updated_cat = first_svd(updated_query)
+
+  # return json_search(updated_query, pricing=price, category=updated_cat)
+
+#this is the function that gets list of irrelevant documents for the query
+# def get_irrelevant_docs(map, query):
+#    return map[query]
+   
 @app.route("/")
 def home():
     return render_template('base.html',title="sample html")
@@ -996,10 +994,6 @@ def episodes_search():
 
     request_data = request.json
     text = request_data["title"] #query -- ex. Star Wars Action Figure
-    print("asdf")
-    print(request_data)
-    print(text)
-    print(type(text))
     #optional filters -- ***if not used then pass in empty string "" ***
     #age = request_data["age"] #number ex. 17 that we classify into child, teen, YA, adult, old
     """
@@ -1035,13 +1029,14 @@ def episodes_search():
     for w in final_query:
        query = query + w + " "
 
-    best_cat = first_svd(query)
-    #best_cat = "all"
-
-    return json_search(query,pricing=pricing,category=best_cat)
+  
+    #TODO: this field should be an input from the UI, it is ok to be None
+    best_cat = "Books"
+    print(type(json_search(query,pricing=pricing,category=None)))
+    return json_search(query,pricing=pricing,category=None)
     #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=8000)
 
-#Test
+#test

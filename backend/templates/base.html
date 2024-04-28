@@ -32,6 +32,9 @@
                 <button type="submit">Submit</button>
             </form>
         </div>
+        <div id="loading-indicator" style="display: none;">
+            <img src="{{ url_for('static', filename='images/loading.gif') }}" alt="Loading...">
+        </div>
 
     </div>
     <div id="answer-box">
@@ -39,13 +42,15 @@
     </div>
     </div>
 
+
     <script>
-        let notHelpfulTitles = [];
+        let helpfulTitles = [];
         var price;
 
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
-            notHelpfulTitles = [];
+            helpfulTitles = [];
+            loading(true);
             var description = document.getElementById('filter-text-val').value;
             price = Number(document.getElementById('price').value);
             var data = {
@@ -68,75 +73,77 @@
                     console.log("hello reached here")
                     return response.json();
                 })
-<<<<<<< HEAD
-                .then((res) => {
-                    console.log("reached the other then statement")
-                    console.log("res: ", res)
-                    let dis = res["dis"]
-                    console.log("dis", dis)
-                    console.log("reached after trying to reference dis")
-                    dis.forEach(row => {
+                .then((data) => {
+                    loading(false);
+                    // console.log("reached the other then statement")
+                    // console.log("res: ", res)
+                    // let dis = res["dis"]
+                    // console.log("dis", dis)
+                    // console.log("reached after trying to reference dis")
+                    console.log(typeof data);
+                    console.log(data);
+                    data.forEach(row => {
                         let tempDiv = document.createElement("div")
-                        let image_url = "https://m.media-amazon.com/images/I/51iCK1FjFkL._SL1200_.jpg";
+                        let image_url = "{{ url_for('static', filename='images/default.png') }}";
                         let url = "N/A"
-                        if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
-                            image_url = row.images.hi_res[0];
+                        if (row.images && Array.isArray(row.images.thumb) && row.images.thumb[0]) {
+                            image_url = row.images.thumb[0];
                         }
                         if (row.url) {
                             url = row.url
                         }
-=======
-                .then((data) => data.forEach(row => {
-                    let tempDiv = document.createElement("div")
-                    let image_url = "{{ url_for('static', filename='images/default.png') }}";
-                    let url = "N/A"
-                    if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
-                        image_url = row.images.hi_res[0];
-                    }
-                    if (row.url) {
-                        url = row.url
-                    }
->>>>>>> rocchio
 
                         tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
 
                         document.getElementById("answer-box").appendChild(tempDiv)
-
-                    }
-                    )
+                    })
                 })
                 .catch(error => {
                     console.error('There has been a problem with your fetch operation:', error);
                 });
         })
 
-        function handleNotHelpful(title, query) {
+        function handleHelpful(title, query) {
             let updated = false;
-            if (!notHelpfulTitles.includes(title)) {
-                notHelpfulTitles.push(title);
+            if (!helpfulTitles.includes(title)) {
+                helpfulTitles.push(title);
                 updated = true;
             } else {
-                notHelpfulTitles = [title];
+                helpfulTitles = [title];
                 updated = true;
             }
             if (updated) {
-                sendNotHelpful(query);
+                loading(true);
+                sendHelpful(query);
             }
         }
+        function loading(showLoading) {
+            const loader = document.getElementById('loading-indicator');
+            const answerBox = document.getElementById('answer-box');
+            if (showLoading) {
+                loader.style.display = 'block';
+                answerBox.style.display = 'none';
+            }
+            else {
+                loader.style.display = 'none';
+                answerBox.style.display = 'block';
+
+            }
+        }
+
         function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query) {
-            console.log(image_url)
             return `<div class='answer-container'>
-                <h3 class='episode-title'>${title}</h3>
-                <p class='episode-desc'>${titleDesc}</p>
-                <p class='episode-desc'>Star rating: ${rating}</p>
-                <p class='episode-desc'>Price: $${price}</p>
-                <p class='episode-rating'>Link: </p>
-                <a href='${link}'>${link}</a>
+<h3 class='episode-title'>${title}</h3>
+<p class='episode-desc'>${titleDesc}</p>
+<p class='episode-desc'>Star rating: ${rating}</p>
+<p class='episode-desc'>Price: $${price}</p>
+<p class='episode-rating'>Link: </p>
+<a href='${link}'>${link}</a>
 
-                <img src='${image_url}'>
-                <button type="button" onclick="handleNotHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
+<img src='image_url'>
+<button type="button" onclick="handleHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
 
-            </div>`
+</div>`
         }
         function getExplainability() {
 
@@ -145,14 +152,14 @@
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
         }
-        function sendNotHelpful(query) {
+        function sendHelpful(query) {
             fetch("/not-helpful", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    titles: notHelpfulTitles,
+                    titles: helpfulTitles,
                     query: query,
                     pricing: price
                 })
@@ -182,15 +189,18 @@
                             return response.json();
                         })
                         .then((updatedResults) => {
+                            loading(false);
                             updatedAnswers(updatedResults, query);
                         })
 
                         .catch(error => {
+                            loading(false);
                             console.error('There has been a problem with your fetch operation:', error);
                         });
                 })
 
                 .catch(error => {
+                    loading(false);
                     console.error('There has been a problem with your fetch operation:', error);
                 });
 
