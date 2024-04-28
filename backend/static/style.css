@@ -3,7 +3,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: pink;
+    background-color: #fadde1;
 }
 
 a {
@@ -13,6 +13,27 @@ a {
 img {
     width: 70px;
     height: 100px;
+}
+
+
+button {
+    background-color: #fb6f92;
+    border-radius: 8px;
+    border-style: none;
+    color: #FFFFFF;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px;
+    margin: 5px;
+    text-align: center;
+    transition: color 100ms;
+    touch-action: manipulation;
+}
+
+button:hover,
+button:focus {
+    background-color: #F082AC;
 }
 
 .full-body-container {
@@ -42,7 +63,7 @@ img {
 }
 
 #google-3 {
-    color: #a4133c;
+    color: #fb6f92;
 }
 
 #google-0-1 {
@@ -67,6 +88,7 @@ img {
 
 .input-box {
     border-radius: 50px;
+
     border: 1px solid black;
     display: flex;
     align-items: center;
@@ -87,6 +109,8 @@ img {
 }
 
 .input-box input {
+    background-color: #fadde1;
+
     width: 100%;
     margin-left: 10px;
     font-size: 16px;

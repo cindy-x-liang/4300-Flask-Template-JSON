@@ -13,12 +13,12 @@
                 <!-- <h1 id="google-4">The</h1> -->
                 <h1 id="google-3">The Givers</h1>
                 <!-- <h1 id="google-0-1">0</h1>
-                <h1 id="google-0-2">0</h1> -->
+                <h1 id="google-0-2">0</h1> -->
             </div>
             <!-- <div class="input-box" onclick="sendFocus()">
-                <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val"
-                    onkeyup="filterText()"> -->
+                <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val"
+                    onkeyup="filterText()"> -->
         </div>
         <div>
             <form id="form">
@@ -39,12 +39,15 @@
     </div>
     </div>
 
-
     <script>
+        let notHelpfulTitles = [];
+        var price;
+
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
+            notHelpfulTitles = [];
             var description = document.getElementById('filter-text-val').value;
-            var price = Number(document.getElementById('price').value);
+            price = Number(document.getElementById('price').value);
             var data = {
                 "title": description,
                 "pricing": price
@@ -65,6 +68,7 @@
                     console.log("hello reached here")
                     return response.json();
                 })
+<<<<<<< HEAD
                 .then((res) => {
                     console.log("reached the other then statement")
                     console.log("res: " , res)
@@ -81,6 +85,18 @@
                         if (row.url) {
                             url = row.url
                         }
+=======
+                .then((data) => data.forEach(row => {
+                    let tempDiv = document.createElement("div")
+                    let image_url = "{{ url_for('static', filename='images/default.png') }}";
+                    let url = "N/A"
+                    if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
+                        image_url = row.images.hi_res[0];
+                    }
+                    if (row.url) {
+                        url = row.url
+                    }
+>>>>>>> rocchio
 
                         tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
 
@@ -92,36 +108,34 @@
                     console.error('There has been a problem with your fetch operation:', error);
                 });
         })
-        let notHelpfulTitles = {}
 
         function handleNotHelpful(title, query) {
             let updated = false;
-            if (notHelpfulTitles.hasOwnProperty(query)) {
-                if (!notHelpfulTitles[query].includes(title)) {
-                    notHelpfulTitles[query].push(title);
-                    updated = true;
-                }
+            if (!notHelpfulTitles.includes(title)) {
+                notHelpfulTitles.push(title);
+                updated = true;
             } else {
-                notHelpfulTitles[query] = [title];
+                notHelpfulTitles = [title];
                 updated = true;
             }
             if (updated) {
-                sendNotHelpful()
+                sendNotHelpful(query);
             }
         }
         function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query) {
+            console.log(image_url)
             return `<div class='answer-container'>
-<h3 class='episode-title'>${title}</h3>
-<p class='episode-desc'>${titleDesc}</p>
-<p class='episode-desc'>Star rating: ${rating}</p>
-<p class='episode-desc'>Price: $${price}</p>
-<p class='episode-rating'>Link: </p>
-<a href='${link}'>${link}</a>
+                <h3 class='episode-title'>${title}</h3>
+                <p class='episode-desc'>${titleDesc}</p>
+                <p class='episode-desc'>Star rating: ${rating}</p>
+                <p class='episode-desc'>Price: $${price}</p>
+                <p class='episode-rating'>Link: </p>
+                <a href='${link}'>${link}</a>
 
-<img src='image_url'>
-<button type="button" onclick="handleNotHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
+                <img src='${image_url}'>
+                <button type="button" onclick="handleNotHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
 
-</div>`
+            </div>`
         }
         function getExplainability() {
 
@@ -130,17 +144,74 @@
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
         }
-        function sendNotHelpful() {
+        function sendNotHelpful(query) {
             fetch("/not-helpful", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(notHelpfulTitles)
+                body: JSON.stringify({
+                    titles: notHelpfulTitles,
+                    query: query,
+                    pricing: price
+                })
             })
-                .then(response => response.json())
-                .then(data => console.log("Response from server:", data))
-                .catch(error => console.error('Error sending not helpful titles:', error));
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed")
+                    }
+                    return response.json();
+                })
+                .then((updatedQuery) => {
+                    var data = {
+                        "title": updatedQuery['updated_query'],
+                        "pricing": price
+                    }
+                    fetch("/episodes", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error("Failed")
+                            }
+                            return response.json();
+                        })
+                        .then((updatedResults) => {
+                            updatedAnswers(updatedResults, query);
+                        })
+
+                        .catch(error => {
+                            console.error('There has been a problem with your fetch operation:', error);
+                        });
+                })
+
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
+
+        }
+        function updatedAnswers(data, query) {
+            document.getElementById("answer-box").innerHTML = ""
+            data.forEach(row => {
+                let tempDiv = document.createElement("div")
+                let image_url = "{{ url_for('static', filename='images/default.png') }}";
+                let url = "N/A"
+                if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
+                    image_url = row.images.hi_res[0];
+                }
+                if (row.url) {
+                    url = row.url
+                }
+
+                tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, query);
+
+                document.getElementById("answer-box").appendChild(tempDiv)
+            });
+
         }
 
         function filterText() {
