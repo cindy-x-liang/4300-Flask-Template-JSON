@@ -72,21 +72,22 @@
                     console.log("dis", dis)
                     console.log("reached after trying to reference dis")
                     dis.forEach(row => {
-                    let tempDiv = document.createElement("div")
-                    let image_url = "https://m.media-amazon.com/images/I/51iCK1FjFkL._SL1200_.jpg";
-                    let url = "N/A"
-                    if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
-                        image_url = row.images.hi_res[0];
-                    }
-                    if (row.url) {
-                        url = row.url
-                    }
+                        let tempDiv = document.createElement("div")
+                        let image_url = "https://m.media-amazon.com/images/I/51iCK1FjFkL._SL1200_.jpg";
+                        let url = "N/A"
+                        if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
+                            image_url = row.images.hi_res[0];
+                        }
+                        if (row.url) {
+                            url = row.url
+                        }
 
-                    tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
+                        tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
 
-                    document.getElementById("answer-box").appendChild(tempDiv)
+                        document.getElementById("answer-box").appendChild(tempDiv)
                 
-                })})
+                    }
+                )})
                 .catch(error => {
                     console.error('There has been a problem with your fetch operation:', error);
                 });
@@ -122,6 +123,9 @@
 
 </div>`
         }
+        function getExplainability() {
+
+        }
 
         function sendFocus() {
             document.getElementById('filter-text-val').focus()
@@ -152,9 +156,6 @@
 
         }
 
-        function getExplainability() {
-
-        }
 
     </script>
 </body>
