@@ -71,7 +71,7 @@
 <<<<<<< HEAD
                 .then((res) => {
                     console.log("reached the other then statement")
-                    console.log("res: " , res)
+                    console.log("res: ", res)
                     let dis = res["dis"]
                     console.log("dis", dis)
                     console.log("reached after trying to reference dis")
@@ -101,9 +101,10 @@
                         tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
 
                         document.getElementById("answer-box").appendChild(tempDiv)
-                
+
                     }
-                )})
+                    )
+                })
                 .catch(error => {
                     console.error('There has been a problem with your fetch operation:', error);
                 });
