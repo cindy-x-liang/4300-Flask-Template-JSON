@@ -805,6 +805,11 @@ Filters:
 -pricing
 """
 
+@app.route("/not-helpful", methods=['POST'])
+def receive_not_helpful():
+    data = request.get_json()
+    return jsonify({"status": "success", "message": "Data received"})
+
 @app.route("/episodes", methods = ['POST'])
 def episodes_search():
     #test_func("Skincare cleanser for girl with oily skin")
