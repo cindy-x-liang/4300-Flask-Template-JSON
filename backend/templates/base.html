@@ -80,9 +80,8 @@
                     // let dis = res["dis"]
                     // console.log("dis", dis)
                     // console.log("reached after trying to reference dis")
-                    console.log(typeof data);
-                    console.log(data);
-                    data.forEach(row => {
+
+                    data.dis.forEach(row => {
                         let tempDiv = document.createElement("div")
                         let image_url = "{{ url_for('static', filename='images/default.png') }}";
                         let url = "N/A"
@@ -133,17 +132,17 @@
 
         function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query) {
             return `<div class='answer-container'>
-<h3 class='episode-title'>${title}</h3>
-<p class='episode-desc'>${titleDesc}</p>
-<p class='episode-desc'>Star rating: ${rating}</p>
-<p class='episode-desc'>Price: $${price}</p>
-<p class='episode-rating'>Link: </p>
-<a href='${link}'>${link}</a>
+                <h3 class='episode-title'>${title}</h3>
+                <p class='episode-desc'>${titleDesc}</p>
+                <p class='episode-desc'>Star rating: ${rating}</p>
+                <p class='episode-desc'>Price: $${price}</p>
+                <p class='episode-rating'>Link: </p>
+                <a href='${link}'>${link}</a>
 
-<img src='image_url'>
-<button type="button" onclick="handleHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
+                <img src='${image_url}'>
+                <button type="button" onclick="handleHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Not Helpful</button>
 
-</div>`
+                </div>`
         }
         function getExplainability() {
 
@@ -207,7 +206,7 @@
         }
         function updatedAnswers(data, query) {
             document.getElementById("answer-box").innerHTML = ""
-            data.forEach(row => {
+            data.dis.forEach(row => {
                 let tempDiv = document.createElement("div")
                 let image_url = "{{ url_for('static', filename='images/default.png') }}";
                 let url = "N/A"
