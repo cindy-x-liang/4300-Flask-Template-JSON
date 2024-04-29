@@ -875,6 +875,12 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
       print(query_vec)
       return json.dumps(display)
       # return json.dumps(result_final)
+    except ValueError as e:
+        # Specific handling for max_df and min_df error
+        if "max_df corresponds to < documents than min_df" in str(e):
+            return json.dumps({"error": "No results found. Please adjust your search criteria."})
+        else:
+            return json.dumps({"error": "An error occurred: Please check your input parameters."})
       
     except:
       #  print("errored oops")

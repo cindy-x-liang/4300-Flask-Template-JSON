@@ -120,7 +120,9 @@
                     })
                 })
                 .catch(error => {
+                    loading(false);
                     console.error('There has been a problem with your fetch operation:', error);
+                    document.getElementById("answer-box").innerHTML = `<p>No results found</p>`;
                 });
         })
         function fetchCategories() {
