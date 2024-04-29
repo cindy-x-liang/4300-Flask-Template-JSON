@@ -879,10 +879,15 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
     query_vec = svd_out[0]
     try:
       for i in range(min(16,len(results))):
-        if 'large' in  doc_id_to_product[results[i][1]]:
-          result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['large'][0]})
+        price_to_use = ""
+        if str(doc_id_to_product[results[i][1]]['price']) ==  "None":
+           price_to_use = "NA"
         else:
-           result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
+           price_to_use = '$' + str(doc_id_to_product[results[i][1]]['price'])
+        if 'large' in  doc_id_to_product[results[i][1]]:
+          result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['large'][0]})
+        else:
+           result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
       result_final = result_final + results_svd
