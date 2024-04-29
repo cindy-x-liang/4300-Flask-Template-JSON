@@ -881,7 +881,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
       for i in range(min(16,len(results))):
         price_to_use = ""
         if str(doc_id_to_product[results[i][1]]['price']) ==  "None":
-           price_to_use = "NA"
+           price_to_use = "Not in dataset"
         else:
            price_to_use = '$' + str(doc_id_to_product[results[i][1]]['price'])
         if 'large' in  doc_id_to_product[results[i][1]]:
@@ -890,6 +890,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
            result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
+      for result in results_svd:
+         if result['price'] != "None":
+            result['price'] = '$' + result['price']
+         else:
+            result['price'] = "Not in dataset"
       result_final = result_final + results_svd
       # print(result_final)
       # print('here')
