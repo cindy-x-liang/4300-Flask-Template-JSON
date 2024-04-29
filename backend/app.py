@@ -312,8 +312,13 @@ def print_singular_values(sigma):
    
 from sklearn.feature_extraction import text
 
-def first_svd(query):
+def first_svd(query,price_svd):
   throwaway = get_categories(documentss)
+  new_documents = []
+  for i in documentss:
+     if price_to_int(i[3]) < price_svd:
+        #print(i[1])
+        new_documents.append(i)
   print(documentss[0][0])
   print(documentss[0][1])
   print(documentss[0][2])
@@ -323,7 +328,7 @@ def first_svd(query):
   
   #print(vectorizer)
   #we're using the descriptions as our "documents"
-  td_matrix = vectorizer.fit_transform([x[2] for x in documentss])
+  td_matrix = vectorizer.fit_transform([x[2] for x in new_documents])
   # print(type(td_matrix))
   print(td_matrix.shape)
   """
@@ -433,7 +438,7 @@ def first_svd(query):
   k = 5
   sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
   asort = np.argsort(-sims)[:k+1]
-  res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
+  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],sims[i]) for i in asort[1:]]
 
   #try to see what the top words are in each dimension to give each dimension a label
   itw2 = {i:t for t,i in word_to_index.items()}
@@ -506,7 +511,7 @@ def first_svd(query):
 
   #   return most_freq_cat_str
   
-def improved_svd(query,category):
+def improved_svd(query,category,price_svd=100000):
   if category == None:
      return []
   #category = first_svd(query)
@@ -514,7 +519,7 @@ def improved_svd(query,category):
   #filter out documents by the chosen category
   new_documents = []
   for i in documentss:
-     if i[1] == category:
+     if i[1] == category and price_to_int(i[3]) < price_svd:
         #print(i[1])
         new_documents.append(i)
 
@@ -643,7 +648,7 @@ def improved_svd(query,category):
 
   #   index += 1
      
-  res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
+  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],sims[i]) for i in asort[1:]]
 
   #most_freq_cat = {}
   result = []
@@ -793,6 +798,15 @@ def filter_results_stars(results, doc_id_to_product):
    new_results.sort(key=lambda x:x[0], reverse = True)
    return new_results
 
+def filter_categories(original_data,category):
+   filtered_data = []
+   for item in original_data:
+      if (item['main_category']==category):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+   #print(filtered_data)
+   return filtered_data
+
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
@@ -801,7 +815,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
     if category == None:
        filtered_data = data
     else:
-      filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
+      filtered_data = filter_categories(data,category)
 
     if pricing:
       filtered_data = filter_price(filtered_data,pricing)
@@ -852,11 +866,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
     results = filter_results_stars(results,doc_id_to_product)
     if category == None:
        print("first_svd taken")
-       svd_out = first_svd(query)
+       svd_out = first_svd(query,pricing)
        results_svd = svd_out[1]
 
     else:
-      svd_out = improved_svd(query,category)
+      svd_out = improved_svd(query,category,pricing)
       results_svd = svd_out[1]
     results = results[:10] 
     query_vec = svd_out[0]
