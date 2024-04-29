@@ -129,14 +129,16 @@
 
                         if (counter < 10) {
                             tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description, row.sim);
-
+                            document.getElementById("answer-box").appendChild(tempDiv)
                         }
                         else {
                             tempDiv.innerHTML = svdBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description, counter - 10);
+                            document.getElementById("answer-box").appendChild(tempDiv)
                             updateExplainability(res_dims, dims, counter-10)
                         }
 
-                        document.getElementById("answer-box").appendChild(tempDiv)
+                        
+
 
                         counter += 1
                     })
@@ -239,10 +241,15 @@
             let latent_dims = Object.keys(og_labels)
 
             let data = data_list[id]            
-            console.log(data)
+            console.log("data here", data)
             let container_name = "res-container-" + id;
 
             anychart.onDocumentReady(function () {
+                console.log("here1")
+
+                document.getElementById(container_name).innerHTML = '';
+
+
 
                 // create a data set
                 // var chartData = {
@@ -273,6 +280,7 @@
                     [latent_dims[5], data[5]],
                 ]
                 };
+                console.log("here2")
 
                 // create a radar chart
                 var chart = anychart.radar();
@@ -284,10 +292,16 @@
                 chart.title("Latent Dims");
 
                 // set the container id
+                console.log("here3")
+
                 chart.container(container_name);
+
+                console.log("here4")
 
                 // display the radar chart
                 chart.draw();
+                console.log("here5")
+
 
             });
         }
