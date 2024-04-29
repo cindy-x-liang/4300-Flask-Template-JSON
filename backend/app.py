@@ -220,8 +220,11 @@ with open(json_file_path) as f_2:
           to_add += d
        for feature in x['features']:
           to_add += feature
-       if 'large' in x:
-          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],x['large'][0]))
+       if 'images' in x:
+          if 'large' in x['images'] and len(x['images']['large'])>0:
+            documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],x['images']['large'][0]))
+          else:
+            documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
        else:
           documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
     print('len documents')
@@ -913,12 +916,16 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
            price_to_use = "Not in dataset"
         else:
            price_to_use = '$' + str(doc_id_to_product[results[i][1]]['price'])
-        if 'large' in  doc_id_to_product[results[i][1]]:
-          result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['large'][0]})
+        if 'images' in  doc_id_to_product[results[i][1]]:
+          if 'large' in  doc_id_to_product[results[i][1]]['images'] and len(doc_id_to_product[results[i][1]]['images']['large'])>0 :
+            result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['images']['large'][0]})
+          else:
+             result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
         else:
            result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
+      print('before SVD')
       for result in results_svd:
          if result['price'] != "None":
             result['price'] = '$' + result['price']
@@ -928,7 +935,10 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
       # print(result_final)
       # print('here')
       # print(type(query_vec))
+      
       display = {"explain" : (query_vec), "dis" : result_final}
+      print('here')
+      print(display)
       # print(display)
       # print("before json dumps")
       # temp = json.dumps(display)
