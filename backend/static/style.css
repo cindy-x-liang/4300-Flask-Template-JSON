@@ -174,3 +174,14 @@ img {
   margin: 0;
   padding: 0;
 }
+
+.user-notice {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  text-align: center;
+  width: 600px;
+}
