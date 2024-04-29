@@ -117,8 +117,8 @@
                         let tempDiv = document.createElement("div")
                         let image_url = "{{ url_for('static', filename='images/default.png') }}";
                         let url = "N/A"
-                        if (row.images && Array.isArray(row.images.thumb) && row.images.thumb[0]) {
-                            image_url = row.images.thumb[0];
+                        if (row.images && Array.isArray(row.images.large)) {
+                            image_url = row.images.large;
                         }
                         if (row.url) {
                             url = row.url

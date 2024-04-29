@@ -220,7 +220,10 @@ with open(json_file_path) as f_2:
           to_add += d
        for feature in x['features']:
           to_add += feature
-       documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
+       if 'large' in x:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],x['large'][0]))
+       else:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
     print('len documents')
     print(len(documentss))
        
@@ -438,7 +441,7 @@ def first_svd(query,price_svd):
   k = 5
   sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
   asort = np.argsort(-sims)[:k+1]
-  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],sims[i]) for i in asort[1:]]
+  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],new_documents[i][6],sims[i]) for i in asort[1:]]
 
   #try to see what the top words are in each dimension to give each dimension a label
   itw2 = {i:t for t,i in word_to_index.items()}
@@ -483,11 +486,11 @@ def first_svd(query,price_svd):
   
   most_freq_cat = {}
   result = []
-  for i, proj, cat ,descr,price,rating,url, sim in res:
+  for i, proj, cat ,descr,price,rating,url,img ,sim in res:
     #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
-    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
     #result.append((sim,i))
   return (explain_dic,result)
   #   if cat in most_freq_cat:
@@ -648,15 +651,15 @@ def improved_svd(query,category,price_svd=100000):
 
   #   index += 1
      
-  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],sims[i]) for i in asort[1:]]
+  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],new_documents[i][6],sims[i]) for i in asort[1:]]
 
   #most_freq_cat = {}
   result = []
-  for i, proj, cat ,descr,price,rating,url, sim in res:
+  for i, proj, cat ,descr,price,rating,url,img, sim in res:
     #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
-    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
     #result.append((sim,i))
   return (explain_dic,result)
 
@@ -875,8 +878,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
     results = results[:10] 
     query_vec = svd_out[0]
     try:
-      for i in range(min(16,len(results))):          
-        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+      for i in range(min(16,len(results))):
+        if 'large' in  doc_id_to_product[results[i][1]]:
+          result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['large'][0]})
+        else:
+           result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
       result_final = result_final + results_svd
