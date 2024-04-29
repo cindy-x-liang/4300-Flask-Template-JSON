@@ -200,49 +200,49 @@
 
             anychart.onDocumentReady(function () {
 
-            // create a data set
-            // var chartData = {
-            // header: latent_dims,
-            // rows: vals
-            // };
+                // create a data set
+                // var chartData = {
+                // header: latent_dims,
+                // rows: vals
+                // };
 
-            // var chartData = {
-            //     header: ['#', 'Robert Lewandowski', 'Cristiano Ronaldo', 'Lionel Messi'],
-            //     rows: [
-            //         ['2017', 33, 19, 40],
-            //         ['2018', 24, 36, 34],
-            //         ['2019', 31, 17, 34],
-            //         ['2020', 32, 33, 19],
-            //         ['2021', 43, 25, 24],
-            //         ['2022', 29, 11, 12]
-            //     ]
-            // };
+                // var chartData = {
+                //     header: ['#', 'Robert Lewandowski', 'Cristiano Ronaldo', 'Lionel Messi'],
+                //     rows: [
+                //         ['2017', 33, 19, 40],
+                //         ['2018', 24, 36, 34],
+                //         ['2019', 31, 17, 34],
+                //         ['2020', 32, 33, 19],
+                //         ['2021', 43, 25, 24],
+                //         ['2022', 29, 11, 12]
+                //     ]
+                // };
 
-            var chartData = {
-                header: ['#', 'Product'],
-                rows: [
-                    [latent_dims[0], vals[1]],
-                    [latent_dims[1], vals[2]],
-                    [latent_dims[2], vals[3]],
-                    [latent_dims[3], vals[4]],
-                    [latent_dims[4], vals[5]]
-                ]
-            };
+                var chartData = {
+                    header: ['#', 'Product'],
+                    rows: [
+                        [latent_dims[0], vals[1]],
+                        [latent_dims[1], vals[2]],
+                        [latent_dims[2], vals[3]],
+                        [latent_dims[3], vals[4]],
+                        [latent_dims[4], vals[5]]
+                    ]
+                };
 
-            // create a radar chart
-            var chart = anychart.radar();
+                // create a radar chart
+                var chart = anychart.radar();
 
-            // set the chart data
-            chart.data(chartData);
+                // set the chart data
+                chart.data(chartData);
 
-            // set the chart title
-            chart.title("Latent Dims");
+                // set the chart title
+                chart.title("Latent Dims");
 
-            // set the container id
-            chart.container('graph-container');
+                // set the container id
+                chart.container('graph-container');
 
-            // display the radar chart
-            chart.draw();
+                // display the radar chart
+                chart.draw();
 
             });
         }
@@ -259,7 +259,8 @@
                 body: JSON.stringify({
                     titles: helpfulTitles,
                     query: query,
-                    pricing: price
+                    pricing: price,
+                    category: category
                 })
             })
                 .then(response => {
@@ -268,35 +269,39 @@
                     }
                     return response.json();
                 })
-                .then((updatedQuery) => {
-                    var data = {
-                        "title": updatedQuery['updated_query'],
-                        "pricing": price,
-                        "category": category
-                    }
-                    fetch("/episodes", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error("Failed")
-                            }
-                            return response.json();
-                        })
-                        .then((updatedResults) => {
-                            loading(false);
-                            updatedAnswers(updatedResults, query);
-                        })
-
-                        .catch(error => {
-                            loading(false);
-                            console.error('There has been a problem with your fetch operation:', error);
-                        });
+                .then((updatedResults) => {
+                    loading(false);
+                    updatedAnswers(updatedResults, query);
                 })
+                // .then((updatedQuery) => {
+                //     var data = {
+                //         "title": updatedQuery['updated_query'],
+                //         "pricing": price,
+                //         "category": category
+                //     }
+                //     fetch("/episodes", {
+                //         method: 'POST',
+                //         headers: {
+                //             'Content-Type': 'application/json',
+                //         },
+                //         body: JSON.stringify(data)
+                //     })
+                //         .then(response => {
+                //             if (!response.ok) {
+                //                 throw new Error("Failed")
+                //             }
+                //             return response.json();
+                //         })
+                //         .then((updatedResults) => {
+                //             loading(false);
+                //             updatedAnswers(updatedResults, query);
+                //         })
+
+                //         .catch(error => {
+                //             loading(false);
+                //             console.error('There has been a problem with your fetch operation:', error);
+                //         });
+                // })
 
                 .catch(error => {
                     loading(false);

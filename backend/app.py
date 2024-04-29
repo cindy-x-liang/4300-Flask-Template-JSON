@@ -165,20 +165,25 @@ def index_search(
     doc_norms,
     score_func=accumulate_dot_scores,
     tokenizer=tokenize,
+    weights_dict=None
 ) -> List[Tuple[int, int]]:
 
     query_tokens = re.findall(r'[a-z]+', query.lower())
-    #print(query_tokens)
-    query_word_counts = {}
-    for token in query_tokens:
-      if token in query_word_counts:
-        query_word_counts[token]+=1
-      else:
-        query_word_counts[token] = 1
+
+    if weights_dict is not None:
+      query_word_counts = weights_dict
+    else:
+      #print(query_tokens)
+      query_word_counts = {} #query word counts becomes result from rocchio
+      for token in query_tokens:
+        if token in query_word_counts:
+          query_word_counts[token]+=1
+        else:
+          query_word_counts[token] = 1
 
     scores = score_func(query_word_counts,index,idf)
     query_norm = 0
-    for word in query_tokens:
+    for word in query_tokens: #query tokens can be the keys of the dictionary ffrom rocchio
       if word in idf:
         query_norm += (query_word_counts[word] * idf[word] )**2
     query_norm = math.sqrt(query_norm)
@@ -791,7 +796,7 @@ def filter_results_stars(results, doc_id_to_product):
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
-def json_search(query,age=None,gender=None,pricing=None,category=None):
+def json_search(query,age=None,gender=None,pricing=None,category=None, weights_dict = None):
     #first filter out products given age, gender, and pricing
     if category == None:
        filtered_data = data
@@ -804,7 +809,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
     dict_products = {}
     count = 1
     
-    
+       
     #print(type(filtered_data[0]['description'][0]))
     for i in filtered_data:
         #print(i['description'][0])
@@ -827,7 +832,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
     doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
 
     #runs cosine similarity
-    results = index_search(query, inv_idx, idf, doc_norms)
+    if weights_dict is not None:
+      results = index_search(query, inv_idx, idf, doc_norms, weights_dict=weights_dict) #takes in query vector
+    else: 
+      results = index_search(query, inv_idx, idf, doc_norms) #takes in query vector
+
     #print(results)
 
     doc_id_to_product = {}
@@ -883,8 +892,8 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
 Helper Functions -- Finish
 """   
 def rocchio_relevance_feedback(query, relevant_docs, irrelevant_docs):
-  alpha = 0.4
-  beta = 0.6
+  alpha = 0.5
+  beta = 0.8
   gamma = 0.2
   vectorizer = TfidfVectorizer()  
 
@@ -905,24 +914,33 @@ def rocchio_relevance_feedback(query, relevant_docs, irrelevant_docs):
   else:
       relevant_centroid = np.zeros(query_vec.shape[1])
 
-  
-  if not sp.issparse(relevant_centroid):
-    relevant_centroid = sp.csr_matrix(relevant_centroid)
+  updated_vec = alpha * query_vec + beta * relevant_centroid
 
-  if not sp.issparse(irrelevant_centroid):
-    irrelevant_centroid = sp.csr_matrix(irrelevant_centroid)
+  triple_vec = sp.coo_matrix(updated_vec)
 
-  if sp.issparse(query_vec):
-    updated_vec = alpha * query_vec + beta * relevant_centroid - gamma * irrelevant_centroid
-    dense_vec = updated_vec.toarray().flatten()
-  else:
-    updated_vec = alpha * query_vec.toarray() + beta * relevant_centroid.toarray() - gamma * irrelevant_centroid.toarray()
-    dense_vec = updated_vec.flatten()
+  feature_names = vectorizer.get_feature_names_out()
 
-  feature_names = vectorizer.get_feature_names_out() 
-  top_indices = np.argsort(dense_vec)[::-1][:10]
-  top_terms = feature_names[top_indices]
-  updated_query = " ".join(top_terms)
+  weights_dict = {feature_names[i]: value for i, value in zip(triple_vec.col, triple_vec.data)}
+
+  return weights_dict
+
+  # if not sp.issparse(relevant_centroid):
+  #   relevant_centroid = sp.csr_matrix(relevant_centroid)
+
+  # if not sp.issparse(irrelevant_centroid):
+  #   irrelevant_centroid = sp.csr_matrix(irrelevant_centroid)
+
+  # if sp.issparse(query_vec):
+  #   updated_vec = alpha * query_vec + beta * relevant_centroid - gamma * irrelevant_centroid
+  #   dense_vec = updated_vec.toarray().flatten()
+  # else:
+  #   updated_vec = alpha * query_vec.toarray() + beta * relevant_centroid.toarray() - gamma * irrelevant_centroid.toarray()
+  #   dense_vec = updated_vec.flatten()
+
+  # feature_names = vectorizer.get_feature_names_out() 
+  # top_indices = np.argsort(dense_vec)[::-1][:10]
+  # top_terms = feature_names[top_indices]
+  # updated_query = " ".join(top_terms)
 
 
 
@@ -955,6 +973,11 @@ def receive_not_helpful():
   relevant_docs = data["titles"]
   initial_query = data["query"]
   price = data["pricing"]
+  category = data["category"]
+  if category == "Anything" or category == "anything":
+    category = None
+  elif category == "Other" or category == "other":
+    category = None
 
   sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(initial_query)]
 
@@ -971,8 +994,14 @@ def receive_not_helpful():
   for w in final_query:
     query = query + w + " "
   print(data_with_categories)
-  updated_query = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
-  return jsonify(updated_query=updated_query)
+
+  
+  updated_weights = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
+  updated_query = json_search(query,pricing=price,category=category, weights_dict=updated_weights)
+  return updated_query
+  # updated_query = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
+
+  # return jsonify(updated_query=updated_query)
 
 
 
