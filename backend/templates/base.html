@@ -48,7 +48,7 @@
             similarity score at the top. Product star ratings are factored into the cosine similarity to further filter
             cosine similarity results so products with higher star ratings are returned if there are close ties. Marking
             a product as "helpful" will regenerate a response using Rocchio algorithm to return improved search
-            results.
+            results. The latent dimensions chart represents the latent dimensions of our query for SVD purposes.
         </div>
         <div id="loading-indicator" style="display: none;">
             <img src="{{ url_for('static', filename='images/loading.gif') }}" alt="Loading...">
@@ -125,7 +125,7 @@
                             url = row.url
                         }
 
-                        tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
+                        tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description, row.sim);
 
                         document.getElementById("answer-box").appendChild(tempDiv)
                     })
@@ -189,12 +189,13 @@
             }
         }
 
-        function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query) {
+        function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query, sim) {
             return `<div class='answer-container'>
                 <h3 class='episode-title'>${title}</h3>
                 <p class='episode-desc'>${titleDesc}</p>
                 <p class='episode-desc'>Star rating: ${rating}</p>
                 <p class='episode-desc'>Price: ${price}</p>
+                <p class='episode-desc'> ${sim}</p>
                 <p class='episode-rating'>Link: </p>
                 <a href='${link}'>${link}</a>
 
@@ -231,17 +232,17 @@
                 //     ]
                 // };
 
-            var chartData = {
-                header: ['#', 'Product'],
-                rows: [
-                    [latent_dims[0], vals[0]],
-                    [latent_dims[1], vals[1]],
-                    [latent_dims[2], vals[2]],
-                    [latent_dims[3], vals[3]],
-                    [latent_dims[4], vals[4]],
-                    [latent_dims[5], vals[5]],
-                ]
-            };
+                var chartData = {
+                    header: ['#', 'Product'],
+                    rows: [
+                        [latent_dims[0], vals[0]],
+                        [latent_dims[1], vals[1]],
+                        [latent_dims[2], vals[2]],
+                        [latent_dims[3], vals[3]],
+                        [latent_dims[4], vals[4]],
+                        [latent_dims[5], vals[5]],
+                    ]
+                };
 
                 // create a radar chart
                 var chart = anychart.radar();
