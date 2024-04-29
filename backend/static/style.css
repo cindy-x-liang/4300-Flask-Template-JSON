@@ -1,134 +1,133 @@
 body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: #fadde1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #fadde1;
 }
 
 a {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 img {
-    width: 70px;
-    height: 100px;
+  width: 70px;
+  height: 100px;
 }
 
-
 button {
-    background-color: #fb6f92;
-    border-radius: 8px;
-    border-style: none;
-    color: #FFFFFF;
-    display: inline-block;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 8px;
-    margin: 5px;
-    text-align: center;
-    transition: color 100ms;
-    touch-action: manipulation;
+  background-color: #fb6f92;
+  border-radius: 8px;
+  border-style: none;
+  color: #ffffff;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px;
+  margin: 5px;
+  text-align: center;
+  transition: color 100ms;
+  touch-action: manipulation;
 }
 
 button:hover,
 button:focus {
-    background-color: #F082AC;
+  background-color: #f082ac;
 }
 
 .full-body-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: start;
-    align-items: center;
-    flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  flex-direction: column;
 }
 
 #google-c {
-    color: #4285F4;
+  color: #4285f4;
 }
 
 #google-s {
-    color: #DB4437;
+  color: #db4437;
 }
 
 #google-4 {
-    color: #F4B400;
+  color: #f4b400;
 }
 
 #google-3 {
-    color: #fb6f92;
+  color: #fb6f92;
 }
 
 #google-0-1 {
-    color: #0F9D58;
+  color: #0f9d58;
 }
 
 #google-0-2 {
-    color: #DB4437;
+  color: #db4437;
 }
 
 .google-colors {
-    display: flex;
-    align-items: center;
-    font-size: 48px;
-    font-family: 'Open Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  font-size: 48px;
+  font-family: "Open Sans", sans-serif;
 }
 
 .google-colors h1 {
-    margin-bottom: 0;
-    margin-right: 3px;
+  margin-bottom: 0;
+  margin-right: 3px;
 }
 
 .input-box {
-    border-radius: 50px;
+  border-radius: 50px;
 
-    border: 1px solid black;
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-    padding: 12px;
-    width: 600px;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 12px;
+  width: 600px;
 }
 
 .input-box img {
-    height: 20px;
-    width: 20px;
+  height: 20px;
+  width: 20px;
 }
 
 .top-text {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .input-box input {
-    background-color: #fadde1;
+  background-color: #fadde1;
 
-    width: 100%;
-    margin-left: 10px;
-    font-size: 16px;
-    border: none;
-    outline: 0;
+  width: 100%;
+  margin-left: 10px;
+  font-size: 16px;
+  border: none;
+  outline: 0;
 }
 
 #answer-box {
-    margin-top: 10px;
-    display: flex;
-    width: 700px;
-    flex-direction: column;
-    font-family: 'Montserrat', sans-serif;
-    margin-top: 275px;
+  margin-top: 10px;
+  display: flex;
+  width: 700px;
+  flex-direction: column;
+  font-family: "Montserrat", sans-serif;
+  margin-top: 275px;
 }
 
 .episode-title {
-    font-family: 'Kanit', sans-serif;
+  font-family: "Kanit", sans-serif;
 }
 
 /*
@@ -137,34 +136,41 @@ button:focus {
 } */
 
 .answer-container {
-    margin-top: 30px;
+  margin-top: 30px;
 
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 20px;
-    background-color: #f9f9f9;
-    display: flex;
-    justify-content: space-evenly;
-    flex-direction: column;
-    flex-wrap: wrap;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: column;
+  flex-wrap: wrap;
 }
 
 .episode-title {
-    font-size: 18px;
-    margin: 0;
+  font-size: 18px;
+  margin: 0;
 }
 
 .episode-desc {
-    margin-top: 5px;
+  margin-top: 5px;
 }
 
 .episode-rating {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 img {
-    max-width: 100%;
-    height: auto;
-    margin-top: 10px;
+  max-width: 100%;
+  height: auto;
+  margin-top: 10px;
+}
+
+#graph-container {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }

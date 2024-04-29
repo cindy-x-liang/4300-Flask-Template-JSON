@@ -863,6 +863,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
       # print("after json dumps")
       # print(temp)
       # print("reached final after temp")
+      print(query_vec)
       return json.dumps(display)
       # return json.dumps(result_final)
       

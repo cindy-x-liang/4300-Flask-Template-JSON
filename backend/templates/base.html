@@ -5,6 +5,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Montserrat&family=Open+Sans:wght@500&display=swap"
     rel="stylesheet">
+<script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-core.min.js"></script>
+<script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-radar.min.js"></script>
 
 <body>
     <div class="full-body-container">
@@ -43,6 +45,7 @@
         </div>
 
     </div>
+    <div id="graph-container"></div>
     <div id="answer-box">
 
     </div>
@@ -71,6 +74,7 @@
                 "category": category
             };
             document.getElementById("answer-box").innerHTML = ""
+            document.getElementById("graph-container").innerHTML = ""
             fetch("/episodes", {
                 method: 'POST',
                 headers: {
@@ -93,6 +97,11 @@
                     // let dis = res["dis"]
                     // console.log("dis", dis)
                     // console.log("reached after trying to reference dis")
+                    let dims = data.explain;
+                    // let tempDiv = document.createElement("div")
+                    // tempDiv.innerHTML = getExplainability()
+                    // document.getElementById("graph-container").appendChild(tempDiv)
+                    getExplainability(dims);
 
                     data.dis.forEach(row => {
                         let tempDiv = document.createElement("div")
@@ -181,8 +190,61 @@
 
                 </div>`
         }
-        function getExplainability() {
+        function getExplainability(data) {
+            console.log(data)
+            let latent_dims = Object.keys(data)
+            let vals = Object.values(data)
 
+            console.log(latent_dims)
+            console.log(vals)
+
+            anychart.onDocumentReady(function () {
+
+            // create a data set
+            // var chartData = {
+            // header: latent_dims,
+            // rows: vals
+            // };
+
+            // var chartData = {
+            //     header: ['#', 'Robert Lewandowski', 'Cristiano Ronaldo', 'Lionel Messi'],
+            //     rows: [
+            //         ['2017', 33, 19, 40],
+            //         ['2018', 24, 36, 34],
+            //         ['2019', 31, 17, 34],
+            //         ['2020', 32, 33, 19],
+            //         ['2021', 43, 25, 24],
+            //         ['2022', 29, 11, 12]
+            //     ]
+            // };
+
+            var chartData = {
+                header: ['#', 'Product'],
+                rows: [
+                    [latent_dims[0], vals[1]],
+                    [latent_dims[1], vals[2]],
+                    [latent_dims[2], vals[3]],
+                    [latent_dims[3], vals[4]],
+                    [latent_dims[4], vals[5]]
+                ]
+            };
+
+            // create a radar chart
+            var chart = anychart.radar();
+
+            // set the chart data
+            chart.data(chartData);
+
+            // set the chart title
+            chart.title("Latent Dims");
+
+            // set the container id
+            chart.container('graph-container');
+
+            // display the radar chart
+            chart.draw();
+
+            });
         }
 
         function sendFocus() {
