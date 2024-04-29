@@ -101,18 +101,20 @@
                     return response.json();
                 })
                 .then((data) => {
+                    console.log("data" , data)
                     loading(false);
                     // console.log("reached the other then statement")
                     // console.log("res: ", res)
-                    // let dis = res["dis"]
+                    // let dis = data["dis"]
                     // console.log("dis", dis)
                     // console.log("reached after trying to reference dis")
                     let dims = data.explain;
+                    let res_dims = data.results;
                     // let tempDiv = document.createElement("div")
                     // tempDiv.innerHTML = getExplainability()
                     // document.getElementById("graph-container").appendChild(tempDiv)
                     getExplainability(dims);
-
+                    let counter = 0;
                     data.dis.forEach(row => {
                         let tempDiv = document.createElement("div")
                         let image_url = "{{ url_for('static', filename='images/default.png') }}";
@@ -125,9 +127,18 @@
                             url = row.url
                         }
 
-                        tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
+                        if (counter < 10) {
+                            tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
+
+                        }
+                        else {
+                            tempDiv.innerHTML = svdBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description, counter - 10);
+                            updateExplainability(res_dims, dims, counter-10)
+                        }
 
                         document.getElementById("answer-box").appendChild(tempDiv)
+
+                        counter += 1
                     })
                 })
                 .catch(error => {
@@ -200,8 +211,84 @@
 
                 <img src='${image_url}'>
                 <button type="button" onclick="handleHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Helpful</button>
-
+                
                 </div>`
+        }
+
+        function svdBoxTemplate(title, titleDesc, link, price, rating, image_url, query, num_id) {
+            // console.log(num_id)
+            let container_name = "res-container-" + num_id
+            console.log("container name", container_name)
+            return `<div class='answer-container'>
+                <h3 class='episode-title'>${title}</h3>
+                <p class='episode-desc'>${titleDesc}</p>
+                <p class='episode-desc'>Star rating: ${rating}</p>
+                <p class='episode-desc'>Price: ${price}</p>
+                <p class='episode-rating'>Link: </p>
+                <a href='${link}'>${link}</a>
+
+                <div id='${container_name}'> Placeholder</div>
+                <img src='${image_url}'>
+                <button type="button" onclick="handleHelpful('${title.replace(/'/g, "\\'")}', '${query}')">Helpful</button>
+                
+                </div>`
+        }
+
+        function updateExplainability(data_list,og_labels, id) {
+            let latent_dims = Object.keys(og_labels)
+
+            let data = data_list[id]            
+            console.log(data)
+            let container_name = "res-container-" + id;
+
+            anychart.onDocumentReady(function () {
+
+                // create a data set
+                // var chartData = {
+                // header: latent_dims,
+                // rows: vals
+                // };
+
+                // var chartData = {
+                //     header: ['#', 'Robert Lewandowski', 'Cristiano Ronaldo', 'Lionel Messi'],
+                //     rows: [
+                //         ['2017', 33, 19, 40],
+                //         ['2018', 24, 36, 34],
+                //         ['2019', 31, 17, 34],
+                //         ['2020', 32, 33, 19],
+                //         ['2021', 43, 25, 24],
+                //         ['2022', 29, 11, 12]
+                //     ]
+                // };
+
+                var chartData = {
+                header: ['#', 'Product'],
+                rows: [
+                    [latent_dims[0], data[0]],
+                    [latent_dims[1], data[1]],
+                    [latent_dims[2], data[2]],
+                    [latent_dims[3], data[3]],
+                    [latent_dims[4], data[4]],
+                    [latent_dims[5], data[5]],
+                ]
+                };
+
+                // create a radar chart
+                var chart = anychart.radar();
+
+                // set the chart data
+                chart.data(chartData);
+
+                // set the chart title
+                chart.title("Latent Dims");
+
+                // set the container id
+                chart.container(container_name);
+
+                // display the radar chart
+                chart.draw();
+
+            });
         }
         function getExplainability(data) {
             console.log(data)

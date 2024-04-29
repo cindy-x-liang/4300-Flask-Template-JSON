@@ -466,6 +466,14 @@ def first_svd(query,price_svd):
   sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
   asort = np.argsort(-sims)[:k+1]
   res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],new_documents[i][6],sims[i]) for i in asort[1:]]
+  res_values = []
+  for item in res:
+     i_val = item[0]
+     abs_val = [abs(x) for x in list(docs_compressed_normed[i_val])]
+     res_values.append(abs_val)
+
+  print("res values")
+  print(res_values)
 
   #try to see what the top words are in each dimension to give each dimension a label
   itw2 = {i:t for t,i in word_to_index.items()}
@@ -516,7 +524,7 @@ def first_svd(query,price_svd):
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
     #result.append((sim,i))
-  return (explain_dic,result)
+  return (explain_dic,result,res_values)
   #   if cat in most_freq_cat:
   #      most_freq_cat[cat] += 1
   #   else:
@@ -684,6 +692,14 @@ def improved_svd(query,category,price_svd=100000):
   #   index += 1
      
   res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],new_documents[i][6],sims[i]) for i in asort[1:]]
+  res_values = []
+  for item in res:
+     i_val = item[0]
+     abs_val = [abs(x) for x in list(docs_compressed_normed[i_val])]
+     res_values.append(abs_val)
+
+  print("res values")
+  print(res_values)
 
   #most_freq_cat = {}
   result = []
@@ -693,7 +709,7 @@ def improved_svd(query,category,price_svd=100000):
     #this is to match the result of json_search
     result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
     #result.append((sim,i))
-  return (explain_dic,result)
+  return (explain_dic,result,res_values)
 
 
 
@@ -909,6 +925,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
       results_svd = svd_out[1]
     results = results[:10] 
     query_vec = svd_out[0]
+    results_vec = svd_out[2]
     try:
       for i in range(min(16,len(results))):
         price_to_use = ""
@@ -936,7 +953,9 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
       # print('here')
       # print(type(query_vec))
       
-      display = {"explain" : (query_vec), "dis" : result_final}
+      display = {"explain" : (query_vec), "dis" : result_final, "results" : results_vec}
+
+      # display = {"explain" : (query_vec), "dis" : result_final}
       print('here')
       print(display)
       # print(display)
@@ -945,7 +964,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
       # print("after json dumps")
       # print(temp)
       # print("reached final after temp")
-      print(query_vec)
+      # print(query_vec)
       return json.dumps(display)
       # return json.dumps(result_final)
     except ValueError as e:
