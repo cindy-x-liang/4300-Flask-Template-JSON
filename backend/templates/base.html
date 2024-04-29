@@ -117,9 +117,10 @@
                         let tempDiv = document.createElement("div")
                         let image_url = "{{ url_for('static', filename='images/default.png') }}";
                         let url = "N/A"
-                        if (row.images && Array.isArray(row.images.large)) {
-                            image_url = row.images.large;
+                        if (row.large != "") {
+                            image_url = row.large;
                         }
+                        console.log(image_url)
                         if (row.url) {
                             url = row.url
                         }
@@ -131,7 +132,7 @@
                 })
                 .catch(error => {
                     loading(false);
-                    console.error('There has been a problem with your fetch operation:', error);
+                    console.error('There has been a problem with your fetch operation for images:', error);
                     document.getElementById("answer-box").innerHTML = `<p>No results found</p>`;
                 });
         })
