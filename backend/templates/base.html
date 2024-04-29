@@ -125,7 +125,7 @@
                             url = row.url
                         }
 
-                        tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description);
+                        tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description, row.sim);
 
                         document.getElementById("answer-box").appendChild(tempDiv)
                     })
@@ -189,12 +189,13 @@
             }
         }
 
-        function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query) {
+        function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query, sim) {
             return `<div class='answer-container'>
                 <h3 class='episode-title'>${title}</h3>
                 <p class='episode-desc'>${titleDesc}</p>
                 <p class='episode-desc'>Star rating: ${rating}</p>
                 <p class='episode-desc'>Price: ${price}</p>
+                <p class='episode-desc'> ${sim}</p>
                 <p class='episode-rating'>Link: </p>
                 <a href='${link}'>${link}</a>
 
@@ -231,17 +232,17 @@
                 //     ]
                 // };
 
-            var chartData = {
-                header: ['#', 'Product'],
-                rows: [
-                    [latent_dims[0], vals[0]],
-                    [latent_dims[1], vals[1]],
-                    [latent_dims[2], vals[2]],
-                    [latent_dims[3], vals[3]],
-                    [latent_dims[4], vals[4]],
-                    [latent_dims[5], vals[5]],
-                ]
-            };
+                var chartData = {
+                    header: ['#', 'Product'],
+                    rows: [
+                        [latent_dims[0], vals[0]],
+                        [latent_dims[1], vals[1]],
+                        [latent_dims[2], vals[2]],
+                        [latent_dims[3], vals[3]],
+                        [latent_dims[4], vals[4]],
+                        [latent_dims[5], vals[5]],
+                    ]
+                };
 
                 // create a radar chart
                 var chart = anychart.radar();
