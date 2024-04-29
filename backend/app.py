@@ -249,11 +249,13 @@ def get_categories(data):
   d1 = {} 
   for i in data:
     curr_category = i[1] #main category
+    if curr_category == "None":
+       curr_category = "Other"
     if curr_category in d1:
        d1[curr_category] += 1
     else:
        d1[curr_category] = 1
-
+  
   categories = list((d1.keys()))
   for i in categories:
      print(str(i) + " : " + str(d1[i]))
@@ -1041,7 +1043,9 @@ def episodes_search():
   
     #TODO: this field should be an input from the UI, it is ok to be None
     category = request_data["category"]
-    if category == "Anything":
+    if category == "Anything" or category == "anything":
+       category = None
+    elif category == "Other" or category == "other":
        category = None
     return json_search(query,pricing=pricing,category=category)
     #return json.dumps({"message" : "hello"})

@@ -119,12 +119,18 @@
                 .then(response => response.json())
                 .then(categories => {
                     const selectElement = document.getElementById('categories');
-                    selectElement.innerHTML = '';
 
                     categories.forEach(category => {
                         const option = document.createElement('option');
-                        option.value = category;
-                        option.textContent = category;
+                        if (category == null) {
+                            option.value = "Other";
+                            option.textContent = "Other";
+                        }
+                        else {
+                            option.value = category;
+                            option.textContent = category;
+                        }
+
                         selectElement.appendChild(option);
                     });
                 })
