@@ -3,7 +3,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #fadde1;
+  background-color: #f2ebfb;
 }
 
 a {
@@ -16,7 +16,7 @@ img {
 }
 
 button {
-  background-color: #fb6f92;
+  background-color: #9667e0;
   border-radius: 8px;
   border-style: none;
   color: #ffffff;
@@ -32,7 +32,7 @@ button {
 
 button:hover,
 button:focus {
-  background-color: #f082ac;
+  background-color: #d4bbfc;
 }
 
 .full-body-container {
@@ -62,7 +62,7 @@ button:focus {
 }
 
 #google-3 {
-  color: #fb6f92;
+  color: #9667e0;
 }
 
 #google-0-1 {
@@ -108,7 +108,7 @@ button:focus {
 }
 
 .input-box input {
-  background-color: #fadde1;
+  background-color: #f2ebfb;
 
   width: 100%;
   margin-left: 10px;
