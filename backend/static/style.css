@@ -118,7 +118,7 @@ button:focus {
 }
 
 #answer-box {
-  margin-top: 10px;
+  margin-top: 100px;
   display: flex;
   width: 700px;
   flex-direction: column;
@@ -136,7 +136,7 @@ button:focus {
 } */
 
 .answer-container {
-  margin-top: 100px;
+  margin-top: 250px;
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 10px;
@@ -167,13 +167,7 @@ img {
   margin-top: 10px;
 }
 
-#graph-container {
-  /* display: flex; */
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+
 
 .user-notice {
   background-color: #f0f0f0;
@@ -184,4 +178,16 @@ img {
   border-radius: 5px;
   text-align: center;
   width: 600px;
+}
+
+#graph-container {
+  height: 400px;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  position: absolute;
+  left: 0;
+  top: 0;
 }

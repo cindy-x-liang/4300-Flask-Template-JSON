@@ -522,7 +522,7 @@ def first_svd(query,price_svd):
     #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
-    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img,'sim':'The similarity score using SVD embeddings is:'+str(sim)})
     #result.append((sim,i))
   return (explain_dic,result,res_values)
   #   if cat in most_freq_cat:
@@ -707,7 +707,7 @@ def improved_svd(query,category,price_svd=100000):
     #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
-    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img, 'sim':'The similarity score using SVD embeddings is:'+str(sim)})
     #result.append((sim,i))
   return (explain_dic,result,res_values)
 
@@ -935,11 +935,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
            price_to_use = '$' + str(doc_id_to_product[results[i][1]]['price'])
         if 'images' in  doc_id_to_product[results[i][1]]:
           if 'large' in  doc_id_to_product[results[i][1]]['images'] and len(doc_id_to_product[results[i][1]]['images']['large'])>0 :
-            result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['images']['large'][0]})
+            result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['images']['large'][0],'sim':'The similarity score using cosine is:'+str(results[i][0])})
           else:
-             result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
+             result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':"",'sim':'The similarity score using cosine is:'+str(results[i][0])})
         else:
-           result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
+           result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':"",'sim':'The similarity score using cosine is:'+str(results[i][0])})
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
       print('before SVD')
