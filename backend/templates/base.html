@@ -40,6 +40,16 @@
                 <button type="submit">Submit</button>
             </form>
         </div>
+        <div class="user-notice">
+            For our users: Inputting a price range and category will filter the dataset so products costing from $0 to
+            the price max and products only in the specified category will appear. The first 10 outputs of your results
+            are generated through cosine similarity with the top results having the highest similarity score to your
+            query. The results following the first 10 results are the SVD results sorted by the result with the highest
+            similarity score at the top. Product star ratings are factored into the cosine similarity to further filter
+            cosine similarity results so products with higher star ratings are returned if there are close ties. Marking
+            a product as "helpful" will regenerate a response using Rocchio algorithm to return improved search
+            results.
+        </div>
         <div id="loading-indicator" style="display: none;">
             <img src="{{ url_for('static', filename='images/loading.gif') }}" alt="Loading...">
         </div>
@@ -107,8 +117,8 @@
                         let tempDiv = document.createElement("div")
                         let image_url = "{{ url_for('static', filename='images/default.png') }}";
                         let url = "N/A"
-                        if (row.images && Array.isArray(row.images.thumb) && row.images.thumb[0]) {
-                            image_url = row.images.thumb[0];
+                        if (row.images && Array.isArray(row.images.large)) {
+                            image_url = row.images.large;
                         }
                         if (row.url) {
                             url = row.url
@@ -120,7 +130,9 @@
                     })
                 })
                 .catch(error => {
+                    loading(false);
                     console.error('There has been a problem with your fetch operation:', error);
+                    document.getElementById("answer-box").innerHTML = `<p>No results found</p>`;
                 });
         })
         function fetchCategories() {
@@ -181,7 +193,7 @@
                 <h3 class='episode-title'>${title}</h3>
                 <p class='episode-desc'>${titleDesc}</p>
                 <p class='episode-desc'>Star rating: ${rating}</p>
-                <p class='episode-desc'>Price: $${price}</p>
+                <p class='episode-desc'>Price: ${price}</p>
                 <p class='episode-rating'>Link: </p>
                 <a href='${link}'>${link}</a>
 
@@ -200,23 +212,23 @@
 
             anychart.onDocumentReady(function () {
 
-            // create a data set
-            // var chartData = {
-            // header: latent_dims,
-            // rows: vals
-            // };
+                // create a data set
+                // var chartData = {
+                // header: latent_dims,
+                // rows: vals
+                // };
 
-            // var chartData = {
-            //     header: ['#', 'Robert Lewandowski', 'Cristiano Ronaldo', 'Lionel Messi'],
-            //     rows: [
-            //         ['2017', 33, 19, 40],
-            //         ['2018', 24, 36, 34],
-            //         ['2019', 31, 17, 34],
-            //         ['2020', 32, 33, 19],
-            //         ['2021', 43, 25, 24],
-            //         ['2022', 29, 11, 12]
-            //     ]
-            // };
+                // var chartData = {
+                //     header: ['#', 'Robert Lewandowski', 'Cristiano Ronaldo', 'Lionel Messi'],
+                //     rows: [
+                //         ['2017', 33, 19, 40],
+                //         ['2018', 24, 36, 34],
+                //         ['2019', 31, 17, 34],
+                //         ['2020', 32, 33, 19],
+                //         ['2021', 43, 25, 24],
+                //         ['2022', 29, 11, 12]
+                //     ]
+                // };
 
             var chartData = {
                 header: ['#', 'Product'],
@@ -230,20 +242,20 @@
                 ]
             };
 
-            // create a radar chart
-            var chart = anychart.radar();
+                // create a radar chart
+                var chart = anychart.radar();
 
-            // set the chart data
-            chart.data(chartData);
+                // set the chart data
+                chart.data(chartData);
 
-            // set the chart title
-            chart.title("Latent Dims");
+                // set the chart title
+                chart.title("Latent Dims");
 
-            // set the container id
-            chart.container('graph-container');
+                // set the container id
+                chart.container('graph-container');
 
-            // display the radar chart
-            chart.draw();
+                // display the radar chart
+                chart.draw();
 
             });
         }
@@ -260,7 +272,8 @@
                 body: JSON.stringify({
                     titles: helpfulTitles,
                     query: query,
-                    pricing: price
+                    pricing: price,
+                    category: category
                 })
             })
                 .then(response => {
@@ -269,35 +282,39 @@
                     }
                     return response.json();
                 })
-                .then((updatedQuery) => {
-                    var data = {
-                        "title": updatedQuery['updated_query'],
-                        "pricing": price,
-                        "category": category
-                    }
-                    fetch("/episodes", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error("Failed")
-                            }
-                            return response.json();
-                        })
-                        .then((updatedResults) => {
-                            loading(false);
-                            updatedAnswers(updatedResults, query);
-                        })
-
-                        .catch(error => {
-                            loading(false);
-                            console.error('There has been a problem with your fetch operation:', error);
-                        });
+                .then((updatedResults) => {
+                    loading(false);
+                    updatedAnswers(updatedResults, query);
                 })
+                // .then((updatedQuery) => {
+                //     var data = {
+                //         "title": updatedQuery['updated_query'],
+                //         "pricing": price,
+                //         "category": category
+                //     }
+                //     fetch("/episodes", {
+                //         method: 'POST',
+                //         headers: {
+                //             'Content-Type': 'application/json',
+                //         },
+                //         body: JSON.stringify(data)
+                //     })
+                //         .then(response => {
+                //             if (!response.ok) {
+                //                 throw new Error("Failed")
+                //             }
+                //             return response.json();
+                //         })
+                //         .then((updatedResults) => {
+                //             loading(false);
+                //             updatedAnswers(updatedResults, query);
+                //         })
+
+                //         .catch(error => {
+                //             loading(false);
+                //             console.error('There has been a problem with your fetch operation:', error);
+                //         });
+                // })
 
                 .catch(error => {
                     loading(false);

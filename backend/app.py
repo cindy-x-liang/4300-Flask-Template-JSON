@@ -82,7 +82,7 @@ Cosine Similarity Calculation Functions -- Start
 """
 def tokenize(text: str) -> List[str]:
     if text:
-      text = text[0].lower()
+      text = text.lower()
       return re.findall(r'[a-z]+', text)
     else:
        return ""
@@ -165,20 +165,25 @@ def index_search(
     doc_norms,
     score_func=accumulate_dot_scores,
     tokenizer=tokenize,
+    weights_dict=None
 ) -> List[Tuple[int, int]]:
 
     query_tokens = re.findall(r'[a-z]+', query.lower())
-    #print(query_tokens)
-    query_word_counts = {}
-    for token in query_tokens:
-      if token in query_word_counts:
-        query_word_counts[token]+=1
-      else:
-        query_word_counts[token] = 1
+
+    if weights_dict is not None:
+      query_word_counts = weights_dict
+    else:
+      #print(query_tokens)
+      query_word_counts = {} #query word counts becomes result from rocchio
+      for token in query_tokens:
+        if token in query_word_counts:
+          query_word_counts[token]+=1
+        else:
+          query_word_counts[token] = 1
 
     scores = score_func(query_word_counts,index,idf)
     query_norm = 0
-    for word in query_tokens:
+    for word in query_tokens: #query tokens can be the keys of the dictionary ffrom rocchio
       if word in idf:
         query_norm += (query_word_counts[word] * idf[word] )**2
     query_norm = math.sqrt(query_norm)
@@ -215,7 +220,10 @@ with open(json_file_path) as f_2:
           to_add += d
        for feature in x['features']:
           to_add += feature
-       documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
+       if 'large' in x:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],x['large'][0]))
+       else:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
     print('len documents')
     print(len(documentss))
        
@@ -307,8 +315,13 @@ def print_singular_values(sigma):
    
 from sklearn.feature_extraction import text
 
-def first_svd(query):
+def first_svd(query,price_svd):
   throwaway = get_categories(documentss)
+  new_documents = []
+  for i in documentss:
+     if price_to_int(i[3]) < price_svd:
+        #print(i[1])
+        new_documents.append(i)
   print(documentss[0][0])
   print(documentss[0][1])
   print(documentss[0][2])
@@ -318,7 +331,7 @@ def first_svd(query):
   
   #print(vectorizer)
   #we're using the descriptions as our "documents"
-  td_matrix = vectorizer.fit_transform([x[2] for x in documentss])
+  td_matrix = vectorizer.fit_transform([x[2] for x in new_documents])
   # print(type(td_matrix))
   print(td_matrix.shape)
   """
@@ -449,7 +462,7 @@ def first_svd(query):
   k = 5
   sims = docs_compressed_normed.dot(query_vec) #highest overlap in terms of latent dim
   asort = np.argsort(-sims)[:k+1]
-  res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
+  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],new_documents[i][6],sims[i]) for i in asort[1:]]
 
   #try to see what the top words are in each dimension to give each dimension a label
   itw2 = {i:t for t,i in word_to_index.items()}
@@ -494,11 +507,11 @@ def first_svd(query):
   
   most_freq_cat = {}
   result = []
-  for i, proj, cat ,descr,price,rating,url, sim in res:
+  for i, proj, cat ,descr,price,rating,url,img ,sim in res:
     #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
-    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
     #result.append((sim,i))
   return (explain_dic,result)
   #   if cat in most_freq_cat:
@@ -522,7 +535,7 @@ def first_svd(query):
 
   #   return most_freq_cat_str
   
-def improved_svd(query,category):
+def improved_svd(query,category,price_svd=100000):
   if category == None:
      return []
   #category = first_svd(query)
@@ -530,7 +543,7 @@ def improved_svd(query,category):
   #filter out documents by the chosen category
   new_documents = []
   for i in documentss:
-     if i[1] == category:
+     if i[1] == category and price_to_int(i[3]) < price_svd:
         #print(i[1])
         new_documents.append(i)
 
@@ -667,15 +680,15 @@ def improved_svd(query,category):
 
   #   index += 1
      
-  res = [(i, documentss[i][0],documentss[i][1], documentss[i][2], documentss[i][3], documentss[i][4], documentss[i][5],sims[i]) for i in asort[1:]]
+  res = [(i, new_documents[i][0],new_documents[i][1], new_documents[i][2], new_documents[i][3], new_documents[i][4], new_documents[i][5],new_documents[i][6],sims[i]) for i in asort[1:]]
 
   #most_freq_cat = {}
   result = []
-  for i, proj, cat ,descr,price,rating,url, sim in res:
+  for i, proj, cat ,descr,price,rating,url,img, sim in res:
     #documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin']))
     print("({}, {}, {}, {:.4f}".format(i, proj,cat, sim))
     #this is to match the result of json_search
-    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url})
+    result.append({'name': proj, 'price':price,'rating': rating, 'descr':descr, 'url': "https://www.amazon.com/dp/" + url,'large':img})
     #result.append((sim,i))
   return (explain_dic,result)
 
@@ -781,15 +794,15 @@ def average_rating_to_int(average_rating):
       return 0
 
 #general filter function called to filter original data according to filters
-def filter(original_data,age = None,gender = None,pricing= None,category= None):
+def filter_price(original_data,pricing= None):
    filtered_data = []
    for item in original_data:
       item_price = item['price']
       #avg_rating = item['average_rating']
-      m_category = item['main_category']
+  
       #print(price_to_int(item_price))
       #print(average_rating_to_int(avg_rating))
-      if (price_to_int(item_price) < int(pricing))  and (m_category == category or category == "all") :
+      if (price_to_int(item_price) < int(pricing)):
          #print(price_to_int(item_price))
          filtered_data.append(item)
    #print(filtered_data)
@@ -817,23 +830,34 @@ def filter_results_stars(results, doc_id_to_product):
    new_results.sort(key=lambda x:x[0], reverse = True)
    return new_results
 
+def filter_categories(original_data,category):
+   filtered_data = []
+   for item in original_data:
+      if (item['main_category']==category):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+   #print(filtered_data)
+   return filtered_data
+
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
-def json_search(query,age=None,gender=None,pricing=None,category=None):
+def json_search(query,age=None,gender=None,pricing=None,category=None, weights_dict = None):
     #first filter out products given age, gender, and pricing
     if category == None:
        filtered_data = data
     else:
-      filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
+      filtered_data = filter_categories(data,category)
 
+    if pricing:
+      filtered_data = filter_price(filtered_data,pricing)
     #print(len(filtered_data))
     #filtered_data = data
     #run cosine similariity using query 
     dict_products = {}
     count = 1
     
-    
+       
     #print(type(filtered_data[0]['description'][0]))
     for i in filtered_data:
         #print(i['description'][0])
@@ -842,7 +866,9 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
         curr_product = []
         for feature in i['features']:
            curr_product += tokenize(feature)
-        dict_products[count] = curr_product+ tokenize(i['description'])
+        for description in i['description']:
+           curr_product += tokenize(description)
+        dict_products[count] = curr_product #+ tokenize(i['description'])
         count+=1
 
     #dict_products[1]
@@ -856,7 +882,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
     doc_norms = compute_doc_norms(inv_idx, idf, len(filtered_data))
 
     #runs cosine similarity
-    results = index_search(query, inv_idx, idf, doc_norms)
+    if weights_dict is not None:
+      results = index_search(query, inv_idx, idf, doc_norms, weights_dict=weights_dict) #takes in query vector
+    else: 
+      results = index_search(query, inv_idx, idf, doc_norms) #takes in query vector
+
     #print(results)
 
     doc_id_to_product = {}
@@ -868,19 +898,32 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
     results = filter_results_stars(results,doc_id_to_product)
     if category == None:
        print("first_svd taken")
-       svd_out = first_svd(query)
+       svd_out = first_svd(query,pricing)
        results_svd = svd_out[1]
 
     else:
-      svd_out = improved_svd(query,category)
+      svd_out = improved_svd(query,category,pricing)
       results_svd = svd_out[1]
     results = results[:10] 
     query_vec = svd_out[0]
     try:
-      for i in range(min(16,len(results))):          
-        result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':doc_id_to_product[results[i][1]]['price'],'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin']})
+      for i in range(min(16,len(results))):
+        price_to_use = ""
+        if str(doc_id_to_product[results[i][1]]['price']) ==  "None":
+           price_to_use = "Not in dataset"
+        else:
+           price_to_use = '$' + str(doc_id_to_product[results[i][1]]['price'])
+        if 'large' in  doc_id_to_product[results[i][1]]:
+          result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':doc_id_to_product[results[i][1]]['large'][0]})
+        else:
+           result_final.append({'name': doc_id_to_product[results[i][1]]['title'], 'price':price_to_use,'rating': doc_id_to_product[results[i][1]]['average_rating'], 'descr':doc_id_to_product[results[i][1]]['description'], 'url': "https://www.amazon.com/dp/" + doc_id_to_product[results[i][1]]['parent_asin'],'large':""})
         # print(doc_id_to_product[results[i][1]]['title'])
         # print(results[i])
+      for result in results_svd:
+         if result['price'] != "None":
+            result['price'] = '$' + result['price']
+         else:
+            result['price'] = "Not in dataset"
       result_final = result_final + results_svd
       # print(result_final)
       # print('here')
@@ -895,6 +938,12 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
       print(query_vec)
       return json.dumps(display)
       # return json.dumps(result_final)
+    except ValueError as e:
+        # Specific handling for max_df and min_df error
+        if "max_df corresponds to < documents than min_df" in str(e):
+            return json.dumps({"error": "No results found. Please adjust your search criteria."})
+        else:
+            return json.dumps({"error": "An error occurred: Please check your input parameters."})
       
     except:
       #  print("errored oops")
@@ -912,8 +961,8 @@ def json_search(query,age=None,gender=None,pricing=None,category=None):
 Helper Functions -- Finish
 """   
 def rocchio_relevance_feedback(query, relevant_docs, irrelevant_docs):
-  alpha = 0.4
-  beta = 0.6
+  alpha = 0.5
+  beta = 0.8
   gamma = 0.2
   vectorizer = TfidfVectorizer()  
 
@@ -934,24 +983,33 @@ def rocchio_relevance_feedback(query, relevant_docs, irrelevant_docs):
   else:
       relevant_centroid = np.zeros(query_vec.shape[1])
 
-  
-  if not sp.issparse(relevant_centroid):
-    relevant_centroid = sp.csr_matrix(relevant_centroid)
+  updated_vec = alpha * query_vec + beta * relevant_centroid
 
-  if not sp.issparse(irrelevant_centroid):
-    irrelevant_centroid = sp.csr_matrix(irrelevant_centroid)
+  triple_vec = sp.coo_matrix(updated_vec)
 
-  if sp.issparse(query_vec):
-    updated_vec = alpha * query_vec + beta * relevant_centroid - gamma * irrelevant_centroid
-    dense_vec = updated_vec.toarray().flatten()
-  else:
-    updated_vec = alpha * query_vec.toarray() + beta * relevant_centroid.toarray() - gamma * irrelevant_centroid.toarray()
-    dense_vec = updated_vec.flatten()
+  feature_names = vectorizer.get_feature_names_out()
 
-  feature_names = vectorizer.get_feature_names_out() 
-  top_indices = np.argsort(dense_vec)[::-1][:10]
-  top_terms = feature_names[top_indices]
-  updated_query = " ".join(top_terms)
+  weights_dict = {feature_names[i]: value for i, value in zip(triple_vec.col, triple_vec.data)}
+
+  return weights_dict
+
+  # if not sp.issparse(relevant_centroid):
+  #   relevant_centroid = sp.csr_matrix(relevant_centroid)
+
+  # if not sp.issparse(irrelevant_centroid):
+  #   irrelevant_centroid = sp.csr_matrix(irrelevant_centroid)
+
+  # if sp.issparse(query_vec):
+  #   updated_vec = alpha * query_vec + beta * relevant_centroid - gamma * irrelevant_centroid
+  #   dense_vec = updated_vec.toarray().flatten()
+  # else:
+  #   updated_vec = alpha * query_vec.toarray() + beta * relevant_centroid.toarray() - gamma * irrelevant_centroid.toarray()
+  #   dense_vec = updated_vec.flatten()
+
+  # feature_names = vectorizer.get_feature_names_out() 
+  # top_indices = np.argsort(dense_vec)[::-1][:10]
+  # top_terms = feature_names[top_indices]
+  # updated_query = " ".join(top_terms)
 
 
 
@@ -984,6 +1042,11 @@ def receive_not_helpful():
   relevant_docs = data["titles"]
   initial_query = data["query"]
   price = data["pricing"]
+  category = data["category"]
+  if category == "Anything" or category == "anything":
+    category = None
+  elif category == "Other" or category == "other":
+    category = None
 
   sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(initial_query)]
 
@@ -1000,8 +1063,14 @@ def receive_not_helpful():
   for w in final_query:
     query = query + w + " "
   print(data_with_categories)
-  updated_query = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
-  return jsonify(updated_query=updated_query)
+
+  
+  updated_weights = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
+  updated_query = json_search(query,pricing=price,category=category, weights_dict=updated_weights)
+  return updated_query
+  # updated_query = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
+
+  # return jsonify(updated_query=updated_query)
 
 
 
@@ -1046,7 +1115,7 @@ def episodes_search():
     """
     #gender = request_data["gender"] #either Male or Female
     pricing = request_data["pricing"] #limit of how much user wants to spend ex. 100
-
+    
     # print(text)
     # print(type(pricing))
     #improved_svd("Cleanser for girl with oily skin",pricing)
@@ -1055,11 +1124,16 @@ def episodes_search():
     best_cat either equals "all" or the category thats determined by svd 
     changed by commenting out one or the other
     """
+    old_query = tokenize(text)
     sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(text)]
 
     allstemms=[w for sent in sent_words_lower_stemmed
               for w in sent]
               
+    allstemms+=old_query
+    print(old_query)
+    print(splitter.split(text))
+    print(allstemms)
     final_query = []
     for w in allstemms:
         print(w)
