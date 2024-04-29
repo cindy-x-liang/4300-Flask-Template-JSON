@@ -409,13 +409,34 @@ def first_svd(query):
   """
   Get the explainability
   --get the abs value for each 
+
+    Dimension 0: Toys for kids/home appliances
+    Dimension 1: Pets
+    Dimension 2: Pets
+    Dimension 3: Fashion/Clothing
+    Dimension 4: Electric Appliances
+    Dimension 5: ?
+    Dimension 6: Beauty
+    Dimension 7: Mobile devices
+    Dimension 8: Mobile Devices
+    Dimension 9: Details/Measurements
   """
   explain_dic = {} 
-  explain_dic["Dimension 1"] = abs(query_vec[0])
-  explain_dic["Dimension 2"] = abs(query_vec[1])
-  explain_dic["Dimension 3"] = abs(query_vec[2])
-  explain_dic["Dimension 4"] = abs(query_vec[3])
-  explain_dic["Dimension 5"] = abs(query_vec[4]) 
+  # explain_dic["Toys"] = abs(query_vec[0])
+  # explain_dic["Pets"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
+  # explain_dic["Fashion/Beauty"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
+  # explain_dic["Electric Appliances"] = abs(query_vec[4]) 
+  # explain_dic["Misc"] = abs(query_vec[5])
+  # explain_dic["Electronics"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
+
+  explain_dic["Dim 1"] = abs(query_vec[0])
+  explain_dic["Dim 2"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
+  explain_dic["Dim 3"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
+  explain_dic["Dim 4"] = abs(query_vec[4]) 
+  explain_dic["Dim 5"] = abs(query_vec[5])
+  explain_dic["Dim 6"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
+
+  # explain_dic["Dimension 10"] = abs(query_vec[9]) 
   
   #query vec 
   print("query_vec")
@@ -612,11 +633,19 @@ def improved_svd(query,category):
   --get the abs value for each 
   """
   explain_dic = {} 
-  explain_dic["Dimension 1"] = abs(query_vec[0])
-  explain_dic["Dimension 2"] = abs(query_vec[1])
-  explain_dic["Dimension 3"] = abs(query_vec[2])
-  explain_dic["Dimension 4"] = abs(query_vec[3])
-  explain_dic["Dimension 5"] = abs(query_vec[4]) 
+  # explain_dic["Toys"] = abs(query_vec[0])
+  # explain_dic["Pets"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
+  # explain_dic["Fashion/Beauty"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
+  # explain_dic["Electric Appliances"] = abs(query_vec[4]) 
+  # explain_dic["Misc"] = abs(query_vec[5])
+  # explain_dic["Electronics"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
+
+  explain_dic["Dim 1"] = abs(query_vec[0])
+  explain_dic["Dim 2"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
+  explain_dic["Dim 3"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
+  explain_dic["Dim 4"] = abs(query_vec[4]) 
+  explain_dic["Dim 5"] = abs(query_vec[5])
+  explain_dic["Dim 6"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
   #query vec 
   print("query_vec")
   print(query_vec)
