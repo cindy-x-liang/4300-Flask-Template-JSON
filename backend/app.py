@@ -757,15 +757,15 @@ def average_rating_to_int(average_rating):
       return 0
 
 #general filter function called to filter original data according to filters
-def filter(original_data,age = None,gender = None,pricing= None,category= None):
+def filter_price(original_data,pricing= None):
    filtered_data = []
    for item in original_data:
       item_price = item['price']
       #avg_rating = item['average_rating']
-      m_category = item['main_category']
+  
       #print(price_to_int(item_price))
       #print(average_rating_to_int(avg_rating))
-      if (price_to_int(item_price) < int(pricing))  and (m_category == category or category == "all") :
+      if (price_to_int(item_price) < int(pricing)):
          #print(price_to_int(item_price))
          filtered_data.append(item)
    #print(filtered_data)
@@ -803,6 +803,8 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, weights_d
     else:
       filtered_data = filter(data_with_categories[category],age,gender,pricing,category)
 
+    if pricing:
+      filtered_data = filter_price(filtered_data,pricing)
     #print(len(filtered_data))
     #filtered_data = data
     #run cosine similariity using query 
@@ -1054,7 +1056,7 @@ def episodes_search():
     """
     #gender = request_data["gender"] #either Male or Female
     pricing = request_data["pricing"] #limit of how much user wants to spend ex. 100
-
+    
     # print(text)
     # print(type(pricing))
     #improved_svd("Cleanser for girl with oily skin",pricing)
