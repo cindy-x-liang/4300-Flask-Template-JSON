@@ -431,6 +431,9 @@
         }
         function updatedAnswers(data, query) {
             document.getElementById("answer-box").innerHTML = ""
+            let counter = 0;
+            let dims = data.explain;
+            let res_dims = data.results;
             data.dis.forEach(row => {
                 let tempDiv = document.createElement("div")
                 let image_url = "{{ url_for('static', filename='images/default.png') }}";
@@ -454,10 +457,22 @@
                 // if (row.url) {
                 //     url = row.url
                 // }
+                if (counter < 10) {
+                    tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, query, row.sim);
+                    document.getElementById("answer-box").appendChild(tempDiv)
+                }
+                else {
+                    tempDiv.innerHTML = svdBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, query, counter - 10);
+                    document.getElementById("answer-box").appendChild(tempDiv)
+                    updateExplainability(res_dims, dims, counter-10)
+                }
+                counter += 1;
 
-                tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, query, row.sim);
+                // tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, query, row.sim);
 
-                document.getElementById("answer-box").appendChild(tempDiv)
+                // document.getElementById("answer-box").appendChild(tempDiv)
+                // updateExplainability(res_dims, dims, counter-10)
+
             });
 
         }
