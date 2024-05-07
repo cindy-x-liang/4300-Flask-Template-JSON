@@ -245,7 +245,7 @@
             let container_name = "res-container-" + id;
 
             anychart.onDocumentReady(function () {
-                console.log("here1")
+                // console.log("here1")
 
                 document.getElementById(container_name).innerHTML = '';
 
@@ -280,7 +280,7 @@
                     [latent_dims[5], data[5]],
                 ]
                 };
-                console.log("here2")
+                // console.log("here2")
 
                 // create a radar chart
                 var chart = anychart.radar();
@@ -292,15 +292,15 @@
                 chart.title("Latent Dims");
 
                 // set the container id
-                console.log("here3")
+                // console.log("here3")
 
                 chart.container(container_name);
 
-                console.log("here4")
+                // console.log("here4")
 
                 // display the radar chart
                 chart.draw();
-                console.log("here5")
+                // console.log("here5")
 
 
             });
@@ -345,19 +345,19 @@
                     ]
                 };
 
-                console.log("here1")
+                // console.log("here1")
                 // create a radar chart
                 var chart = anychart.radar();
 
-                console.log("here2")
+                // console.log("here2")
                 // set the chart data
                 chart.data(chartData);
 
-                console.log("here3")
+                // console.log("here3")
                 // set the chart title
                 chart.title("Latent Dims");
 
-                console.log("here4")
+                // console.log("here4")
                 // set the container id
                 chart.container('graph-container');
 
@@ -434,13 +434,26 @@
             data.dis.forEach(row => {
                 let tempDiv = document.createElement("div")
                 let image_url = "{{ url_for('static', filename='images/default.png') }}";
-                let url = "N/A"
-                if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
-                    image_url = row.images.hi_res[0];
+                let url = "N/A";
+
+
+                if (row.large != "") {
+                    image_url = row.large;
                 }
+                console.log(image_url)
                 if (row.url) {
                     url = row.url
                 }
+                console.log("rocchio image url and url: ", image_url);
+                console.log(url);
+                
+
+                // if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
+                //     image_url = row.images.hi_res[0];
+                // }
+                // if (row.url) {
+                //     url = row.url
+                // }
 
                 tempDiv.innerHTML = answerBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, query, row.sim);
 
