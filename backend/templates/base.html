@@ -22,30 +22,45 @@
                 <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val"
                     onkeyup="filterText()"> -->
         </div>
-        <div>
+        <div class="form">
             <form id="form">
                 <div class="input-box" onclick="sendFocus()">
                     <img src="{{ url_for('static', filename='images/mag.png') }}" />
                     <input placeholder="I'm looking for a gift for someone who likes..." id="filter-text-val">
                 </div>
-                <label for="price">Price:</label>
-                <input type="text" id="price" name="price" required>
+                <div class="form-1">
+                    <label for="price">Price:</label>
+                    <input type="text" id="price" name="price" required>
 
-                <label for="categories">Category</label>
-                <select name="categories" id="categories">
-                    <option value="anything">Anything</option>
-                </select>
+                    <label for="categories">Category</label>
+                    <select name="categories" id="categories">
+                        <option value="anything">Anything</option>
+                    </select>
+
+                </div>
+                <div class="form-2">
+                    <label for="review_q">Number of Reviews:</label>
+                    <input type="text" id="review_q" name="review_q" required>
+                    <label for="review_v">Minimum Review Value:</label>
+                    <input type="text" id="review_v" name="review_v" required>
+
+                </div>
 
                 <button type="submit">Submit</button>
             </form>
         </div>
         <div class="user-notice">
-            For our users: Inputting a price range and category will filter the dataset so products costing from $0 to
-            the price max and products only in the specified category will appear. The first 10 outputs of your results
+            For our users: Inputting a price range and category will filter the dataset so products costing from $0
+            to
+            the price max and products only in the specified category will appear. The first 10 outputs of your
+            results
             are generated through cosine similarity with the top results having the highest similarity score to your
-            query. The results following the first 10 results are the SVD results sorted by the result with the highest
-            similarity score at the top. Product star ratings are factored into the cosine similarity to further filter
-            cosine similarity results so products with higher star ratings are returned if there are close ties. Marking
+            query. The results following the first 10 results are the SVD results sorted by the result with the
+            highest
+            similarity score at the top. Product star ratings are factored into the cosine similarity to further
+            filter
+            cosine similarity results so products with higher star ratings are returned if there are close ties.
+            Marking
             a product as "helpful" will regenerate a response using Rocchio algorithm to return improved search
             results. The latent dimensions chart represents the latent dimensions of our query for SVD purposes.
         </div>
@@ -53,13 +68,10 @@
             <img src="{{ url_for('static', filename='images/loading.gif') }}" alt="Loading...">
         </div>
 
-    </div>
-    <div id="graph-container"></div>
-    <div id="answer-box">
+        <div id="graph-container"></div>
+        <div id="answer-box"></div>
 
     </div>
-    </div>
-
 
     <script>
         window.onload = function () {
@@ -69,6 +81,8 @@
         let helpfulTitles = [];
         var price;
         var category;
+        var review_q;
+        var review_v;
 
         document.getElementById("form").addEventListener('submit', function (e) {
             e.preventDefault();
@@ -77,10 +91,15 @@
             var description = document.getElementById('filter-text-val').value;
             price = Number(document.getElementById('price').value);
             category = document.getElementById('categories').value;
+            review_q = Number(document.getElementById('review_q').value);
+            review_v = Number(document.getElementById('review_v').value);
+
             var data = {
                 "title": description,
                 "pricing": price,
-                "category": category
+                "category": category,
+                "num_reviews": review_q,
+                "review_val": review_v
             };
             document.getElementById("answer-box").innerHTML = ""
             document.getElementById("graph-container").innerHTML = ""

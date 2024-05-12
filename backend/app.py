@@ -1287,18 +1287,17 @@ def episodes_search():
        category = None
     elif category == "Other" or category == "other":
        category = None
-    # review_q = request_data["num_reviews"]
-    # if review_q == "Anything" or review_q == "anything":
-    #    review_q = None
-    # elif review_q == "Other" or review_q == "other":
-    #    review_q = None
-    # review_v = request_data["review_val"]
-    # if review_v == "Anything" or review_v == "anything":
-    #    review_v = None
-    # elif review_v == "Other" or review_v == "other":
-    #    review_v = None
-    review_q = 1
-    review_v = 4
+    review_q = request_data["num_reviews"]
+    if review_q == "Anything" or review_q == "anything":
+       review_q = None
+    elif review_q == "Other" or review_q == "other":
+       review_q = None
+    review_v = request_data["review_val"]
+    if review_v == "Anything" or review_v == "anything":
+       review_v = None
+    elif review_v == "Other" or review_v == "other":
+       review_v = None
+    
     return json_search(query,pricing=pricing,category=category,review_quantity=review_q,review_value=review_v)
     #return json.dumps({"message" : "hello"})
 
