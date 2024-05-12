@@ -318,7 +318,23 @@ def print_singular_values(sigma):
    
 from sklearn.feature_extraction import text
 
-def first_svd(query,price_svd):
+def first_svd(query,price_svd,filtered_data):
+  documentss = []
+  for x in filtered_data:
+      to_add = ""
+      for d in x['description']:
+        to_add += d
+      for feature in x['features']:
+        to_add += feature
+      if 'images' in x:
+        if 'large' in x['images'] and len(x['images']['large'])>0:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],x['images']['large'][0]))
+        else:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
+      else:
+        documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
+  print('len documents')
+  print(len(documentss))
   throwaway = get_categories(documentss)
   new_documents = []
   for i in documentss:
@@ -546,9 +562,23 @@ def first_svd(query,price_svd):
 
   #   return most_freq_cat_str
   
-def improved_svd(query,category,price_svd=100000):
+def improved_svd(query,category,filtered_data,price_svd=100000):
   if category == None:
      return []
+  documentss = []
+  for x in filtered_data:
+      to_add = ""
+      for d in x['description']:
+        to_add += d
+      for feature in x['features']:
+        to_add += feature
+      if 'images' in x:
+        if 'large' in x['images'] and len(x['images']['large'])>0:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],x['images']['large'][0]))
+        else:
+          documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
+      else:
+        documentss.append((x['title'], x['main_category'], to_add, x['price'], x['average_rating'],x['parent_asin'],""))
   #category = first_svd(query)
   # print("Category: " + category)
   #filter out documents by the chosen category
@@ -876,7 +906,7 @@ def filter_results_stars(results, doc_id_to_product):
       #    filtered_data.append(item)
 #    #print(filtered_data)
 #    return filtered_data
-def filter_general(original_data,num_rev,rev_val,category):
+def filter_general(original_data,num_rev,rev_val,category,pricing):
   filtered_data = []
   no_rev = (num_rev is None)
   no_val = (rev_val is None)
@@ -885,6 +915,7 @@ def filter_general(original_data,num_rev,rev_val,category):
     if not no_rev and not no_val and not no_cat:
        if (int(item['rating_number'])>=int(num_rev)) and (float(item['average_rating'])>=float(rev_val)) and (item['main_category']==category):
          #print(price_to_int(item_price))
+         print()
          filtered_data.append(item)
     elif not no_rev and not no_val:
        if (int(item['rating_number'])>=int(num_rev)) and (float(item['average_rating'])>=float(rev_val)):
@@ -911,6 +942,14 @@ def filter_general(original_data,num_rev,rev_val,category):
        if (item['main_category']==category):
          #print(price_to_int(item_price))
          filtered_data.append(item)
+    # item_price = item['price']
+    #   #avg_rating = item['average_rating']
+  
+    #   #print(price_to_int(item_price))
+    #   #print(average_rating_to_int(avg_rating))
+    # if (price_to_int(item_price) < int(pricing)):
+    #      #print(price_to_int(item_price))
+    #   filtered_data.append(item)
 
         #print(filtered_data)
   return filtered_data
@@ -934,7 +973,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, review_va
     #    filtered_data = filtered_data
     # else:
     #   filtered_data = filter_num_reviews(filtered_data,review_quantity)
-    filtered_data = filter_general(data,review_quantity,review_value,category)
+    filtered_data = filter_general(data,review_quantity,review_value,category,pricing)
     if pricing:
       filtered_data = filter_price(filtered_data,pricing)
     #print(len(filtered_data))
@@ -949,6 +988,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, review_va
         #print(i['description'][0])
         
         #?
+        #print(i['main_category'])
         curr_product = []
         for feature in i['features']:
            curr_product += tokenize(feature)
@@ -984,11 +1024,11 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, review_va
     results = filter_results_stars(results,doc_id_to_product)
     if category == None:
        print("first_svd taken")
-       svd_out = first_svd(query,pricing)
+       svd_out = first_svd(query,pricing,filtered_data)
        results_svd = svd_out[1]
 
     else:
-      svd_out = improved_svd(query,category,pricing)
+      svd_out = improved_svd(query,category,filtered_data,pricing)
       results_svd = svd_out[1]
     results = results[:10] 
     query_vec = svd_out[0]
@@ -1023,7 +1063,7 @@ def json_search(query,age=None,gender=None,pricing=None,category=None, review_va
       display = {"explain" : (query_vec), "dis" : result_final, "results" : results_vec}
 
       # display = {"explain" : (query_vec), "dis" : result_final}
-      print('here')
+      print(category)
       print(display)
       # print(display)
       # print("before json dumps")
@@ -1247,18 +1287,18 @@ def episodes_search():
        category = None
     elif category == "Other" or category == "other":
        category = None
-    review_q = request_data["num_reviews"]
-    if review_q == "Anything" or review_q == "anything":
-       review_q = None
-    elif review_q == "Other" or review_q == "other":
-       review_q = None
-    review_v = request_data["review_val"]
-    if review_v == "Anything" or review_v == "anything":
-       review_v = None
-    elif review_v == "Other" or review_v == "other":
-       review_v = None
-    # review_q = 1
-    # review_v = 4
+    # review_q = request_data["num_reviews"]
+    # if review_q == "Anything" or review_q == "anything":
+    #    review_q = None
+    # elif review_q == "Other" or review_q == "other":
+    #    review_q = None
+    # review_v = request_data["review_val"]
+    # if review_v == "Anything" or review_v == "anything":
+    #    review_v = None
+    # elif review_v == "Other" or review_v == "other":
+    #    review_v = None
+    review_q = 1
+    review_v = 4
     return json_search(query,pricing=pricing,category=category,review_quantity=review_q,review_value=review_v)
     #return json.dumps({"message" : "hello"})
 
