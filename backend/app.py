@@ -849,25 +849,92 @@ def filter_results_stars(results, doc_id_to_product):
    new_results.sort(key=lambda x:x[0], reverse = True)
    return new_results
 
-def filter_categories(original_data,category):
-   filtered_data = []
-   for item in original_data:
-      if (item['main_category']==category):
+# def filter_categories(original_data,category):
+#    filtered_data = []
+#    for item in original_data:
+#       if (item['main_category']==category):
+#          #print(price_to_int(item_price))
+#          filtered_data.append(item)
+#    #print(filtered_data)
+#    return filtered_data
+
+# def filter_num_reviews(original_data,num_rev):
+#    filtered_data = []
+#    for item in original_data:
+#       if (int(item['rating_number'])>=int(num_rev)):
+#          #print(price_to_int(item_price))
+#          filtered_data.append(item)
+#    #print(filtered_data)
+#    return filtered_data
+
+# def filter_review_value(original_data,rev_val):
+#    filtered_data = []
+#    for item in original_data:
+      # if (float(item['average_rating'])>=float(rev_val)):
+      #    print(float(item['average_rating']))
+      #    #print(price_to_int(item_price))
+      #    filtered_data.append(item)
+#    #print(filtered_data)
+#    return filtered_data
+def filter_general(original_data,num_rev,rev_val,category):
+  filtered_data = []
+  no_rev = (num_rev is None)
+  no_val = (rev_val is None)
+  no_cat = (category is None)
+  for item in original_data:
+    if not no_rev and not no_val and not no_cat:
+       if (int(item['rating_number'])>=int(num_rev)) and (float(item['average_rating'])>=float(rev_val)) and (item['main_category']==category):
          #print(price_to_int(item_price))
          filtered_data.append(item)
-   #print(filtered_data)
-   return filtered_data
+    elif not no_rev and not no_val:
+       if (int(item['rating_number'])>=int(num_rev)) and (float(item['average_rating'])>=float(rev_val)):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+    elif not no_rev and not no_cat:
+       if (int(item['rating_number'])>=int(num_rev)) and (item['main_category']==category):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+    elif not no_val and no_cat:
+       if (float(item['average_rating'])>=float(rev_val)) and (item['main_category']==category):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+    elif not no_rev:
+      if (int(item['rating_number'])>=int(num_rev)):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+    elif not no_val:
+      if (float(item['average_rating'])>=float(rev_val)):
+         #print(float(item['average_rating']))
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+    elif not no_cat:
+       if (item['main_category']==category):
+         #print(price_to_int(item_price))
+         filtered_data.append(item)
+
+        #print(filtered_data)
+  return filtered_data
 
 
 #currently query is hardcoded 'puzzle creative fun' see the result in the terminal
 #doesn't properly print results to the website
-def json_search(query,age=None,gender=None,pricing=None,category=None, weights_dict = None):
+def json_search(query,age=None,gender=None,pricing=None,category=None, review_value=None,review_quantity=None,weights_dict = None):
     #first filter out products given age, gender, and pricing
-    if category == None:
-       filtered_data = data
-    else:
-      filtered_data = filter_categories(data,category)
+    # if category == None:
+    #    filtered_data = data
+    # else:
+    #   filtered_data = filter_categories(data,category)
 
+    # if review_value == None:
+    #    filtered_data = filtered_data
+    # else:
+    #   filtered_data = filter_review_value(filtered_data,review_value)
+
+    # if review_quantity == None:
+    #    filtered_data = filtered_data
+    # else:
+    #   filtered_data = filter_num_reviews(filtered_data,review_quantity)
+    filtered_data = filter_general(data,review_quantity,review_value,category)
     if pricing:
       filtered_data = filter_price(filtered_data,pricing)
     #print(len(filtered_data))
@@ -1180,7 +1247,19 @@ def episodes_search():
        category = None
     elif category == "Other" or category == "other":
        category = None
-    return json_search(query,pricing=pricing,category=category)
+    review_q = request_data["num_reviews"]
+    if review_q == "Anything" or review_q == "anything":
+       review_q = None
+    elif review_q == "Other" or review_q == "other":
+       review_q = None
+    review_v = request_data["review_val"]
+    if review_v == "Anything" or review_v == "anything":
+       review_v = None
+    elif review_v == "Other" or review_v == "other":
+       review_v = None
+    # review_q = 1
+    # review_v = 4
+    return json_search(query,pricing=pricing,category=category,review_quantity=review_q,review_value=review_v)
     #return json.dumps({"message" : "hello"})
 
 if 'DB_NAME' not in os.environ:

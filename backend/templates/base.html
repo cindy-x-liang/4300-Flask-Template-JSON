@@ -26,8 +26,7 @@
             <form id="form">
                 <div class="input-box" onclick="sendFocus()">
                     <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input placeholder="Enter a description of the person you're buying a gift for"
-                        id="filter-text-val">
+                    <input placeholder="I'm looking for a gift for someone who likes..." id="filter-text-val">
                 </div>
                 <label for="price">Price:</label>
                 <input type="text" id="price" name="price" required>
@@ -101,7 +100,7 @@
                     return response.json();
                 })
                 .then((data) => {
-                    console.log("data" , data)
+                    console.log("data", data)
                     loading(false);
                     // console.log("reached the other then statement")
                     // console.log("res: ", res)
@@ -134,10 +133,10 @@
                         else {
                             tempDiv.innerHTML = svdBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, description, counter - 10);
                             document.getElementById("answer-box").appendChild(tempDiv)
-                            updateExplainability(res_dims, dims, counter-10)
+                            updateExplainability(res_dims, dims, counter - 10)
                         }
 
-                        
+
 
 
                         counter += 1
@@ -202,7 +201,7 @@
             }
         }
 
-        function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query,sim) {
+        function answerBoxTemplate(title, titleDesc, link, price, rating, image_url, query, sim) {
             return `<div class='answer-container'>
                 <h3 class='episode-title'>${title}</h3>
                 <p class='episode-desc'>${titleDesc}</p>
@@ -237,10 +236,10 @@
                 </div>`
         }
 
-        function updateExplainability(data_list,og_labels, id) {
+        function updateExplainability(data_list, og_labels, id) {
             let latent_dims = Object.keys(og_labels)
 
-            let data = data_list[id]            
+            let data = data_list[id]
             console.log("data here", data)
             let container_name = "res-container-" + id;
 
@@ -270,15 +269,15 @@
                 // };
 
                 var chartData = {
-                header: ['#', 'Product'],
-                rows: [
-                    [latent_dims[0], data[0]],
-                    [latent_dims[1], data[1]],
-                    [latent_dims[2], data[2]],
-                    [latent_dims[3], data[3]],
-                    [latent_dims[4], data[4]],
-                    [latent_dims[5], data[5]],
-                ]
+                    header: ['#', 'Product'],
+                    rows: [
+                        [latent_dims[0], data[0]],
+                        [latent_dims[1], data[1]],
+                        [latent_dims[2], data[2]],
+                        [latent_dims[3], data[3]],
+                        [latent_dims[4], data[4]],
+                        [latent_dims[5], data[5]],
+                    ]
                 };
                 // console.log("here2")
 
@@ -449,7 +448,7 @@
                 }
                 console.log("rocchio image url and url: ", image_url);
                 console.log(url);
-                
+
 
                 // if (row.images && Array.isArray(row.images.hi_res) && row.images.hi_res[0]) {
                 //     image_url = row.images.hi_res[0];
@@ -464,7 +463,7 @@
                 else {
                     tempDiv.innerHTML = svdBoxTemplate(row.name, row.descr, row.url, row.price, row.rating, image_url, query, counter - 10);
                     document.getElementById("answer-box").appendChild(tempDiv)
-                    updateExplainability(res_dims, dims, counter-10)
+                    updateExplainability(res_dims, dims, counter - 10)
                 }
                 counter += 1;
 
