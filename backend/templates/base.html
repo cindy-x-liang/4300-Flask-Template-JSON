@@ -24,29 +24,32 @@
         </div>
         <div class="form">
             <form id="form">
-                <div class="input-box" onclick="sendFocus()">
-                    <img src="{{ url_for('static', filename='images/mag.png') }}" />
-                    <input placeholder="I'm looking for a gift for someone who likes..." id="filter-text-val">
+                <div class="input-group">
+                    <div class="input-box" onclick="sendFocus()">
+                        <img src="{{ url_for('static', filename='images/mag.png') }}" />
+                        <input placeholder="I'm looking for a gift for someone who likes..." id="filter-text-val">
+                    </div>
+                    <button type="submit">Submit</button>
                 </div>
+
                 <div class="form-1">
-                    <label for="price">Price:</label>
+                    <label for="price">Price: </label>
                     <input type="text" id="price" name="price" required>
 
-                    <label for="categories">Category</label>
+                    <label for="categories">Category: </label>
                     <select name="categories" id="categories">
                         <option value="anything">Anything</option>
                     </select>
 
                 </div>
                 <div class="form-2">
-                    <label for="review_q">Number of Reviews:</label>
+                    <label for="review_q">Number of Reviews: </label>
                     <input type="text" id="review_q" name="review_q" required>
-                    <label for="review_v">Minimum Review Value:</label>
+                    <label for="review_v">Minimum Review Value: </label>
                     <input type="text" id="review_v" name="review_v" required>
 
                 </div>
 
-                <button type="submit">Submit</button>
             </form>
         </div>
         <div class="user-notice">
