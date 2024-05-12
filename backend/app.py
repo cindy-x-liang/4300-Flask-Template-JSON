@@ -461,12 +461,12 @@ def first_svd(query,price_svd,filtered_data):
   # explain_dic["Misc"] = abs(query_vec[5])
   # explain_dic["Electronics"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
 
-  explain_dic["Dim 1"] = abs(query_vec[0])
-  explain_dic["Dim 2"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
-  explain_dic["Dim 3"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
-  explain_dic["Dim 4"] = abs(query_vec[4]) 
-  explain_dic["Dim 5"] = abs(query_vec[5])
-  explain_dic["Dim 6"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
+  explain_dic["Toys"] = abs(query_vec[0])
+  explain_dic["Pets"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
+  explain_dic["Beauty"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
+  explain_dic["Appliances"] = abs(query_vec[4]) 
+  explain_dic["Misc."] = abs(query_vec[5])
+  explain_dic["Electronics"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
 
   # explain_dic["Dimension 10"] = abs(query_vec[9]) 
   
@@ -694,12 +694,12 @@ def improved_svd(query,category,filtered_data,price_svd=100000):
   # explain_dic["Misc"] = abs(query_vec[5])
   # explain_dic["Electronics"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
 
-  explain_dic["Dim 1"] = abs(query_vec[0])
-  explain_dic["Dim 2"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
-  explain_dic["Dim 3"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
-  explain_dic["Dim 4"] = abs(query_vec[4]) 
-  explain_dic["Dim 5"] = abs(query_vec[5])
-  explain_dic["Dim 6"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
+  explain_dic["Toys"] = abs(query_vec[0])
+  explain_dic["Pets"] = (abs(query_vec[1]) + abs(query_vec[2])) / 2
+  explain_dic["Beauty"] = (abs(query_vec[3]) + abs(query_vec[6])) / 2
+  explain_dic["Appliances"] = abs(query_vec[4]) 
+  explain_dic["Misc."] = abs(query_vec[5])
+  explain_dic["Electronics"] = (abs(query_vec[7]) + abs(query_vec[8])) / 2
   #query vec 
   print("query_vec")
   print(query_vec)
