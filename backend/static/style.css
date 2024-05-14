@@ -94,6 +94,7 @@ img {
 .input-box img {
   height: 20px;
   width: 20px;
+
 }
 
 .top-text {
@@ -198,6 +199,18 @@ img {
   max-width: 100%;
   height: auto;
   margin-top: 10px;
+}
+
+/* .results-img {
+  width: 400px;
+  height: auto;
+} */
+
+.answer-container img {
+  width: 250px;
+  height: auto;
+  margin-top: 10px;
+
 }
 
 .user-notice {

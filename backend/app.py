@@ -954,6 +954,17 @@ def receive_not_helpful():
     category = None
   elif category == "Other" or category == "other":
     category = None
+  review_q = data["num_reviews"]
+  if review_q == "Anything" or review_q == "anything":
+      review_q = None
+  elif review_q == "Other" or review_q == "other":
+      review_q = None
+  review_v = data["review_val"]
+  if review_v == "Anything" or review_v == "anything":
+      review_v = None
+  elif review_v == "Other" or review_v == "other":
+      review_v = None
+    
 
   sent_words_lower_stemmed = [getstems(sent) for sent in splitter.split(initial_query)]
 
@@ -971,7 +982,7 @@ def receive_not_helpful():
 
   
   updated_weights = rocchio_relevance_feedback(query, relevant_docs=relevant_docs, irrelevant_docs=[])
-  updated_query = json_search(query,pricing=price,category=category, weights_dict=updated_weights)
+  updated_query = json_search(query,pricing=price,category=category, review_quantity=review_q,review_value=review_v, weights_dict=updated_weights)
   return updated_query
 
    
